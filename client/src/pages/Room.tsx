@@ -121,7 +121,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
       <div className="sticky top-0 z-30 -mx-4 border-b-2 border-ink bg-paper px-4 py-2 lg:hidden" style={{ boxShadow: '0 4px 0 rgba(22,20,18,0.08)' }}>
         <div className="flex items-center gap-3">
           {secret && (
-            <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <Logo company={secret} size={36} />
               <div className="min-w-0 leading-tight">
                 <div className="text-[10px] uppercase tracking-wider text-ink-3">Your secret</div>
@@ -129,16 +129,16 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
               </div>
             </div>
           )}
-          <div className="ml-auto flex items-center gap-2 text-xs">
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 text-xs">
             {view.players.map((p) => {
               const active = view.activePlayerId === p.id && !finished;
               return (
-                <span key={p.id} className={`border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-ink/20'}`}>
+                <span key={p.id} className={`whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-ink/20'}`}>
                   <b className="display">{p.id === view.me ? 'You' : p.name}</b> {p.remaining}
                 </span>
               );
             })}
-            <button className="btn btn-sm" onClick={() => setLogOpen(true)} aria-label="Open question log">
+            <button className="btn btn-sm whitespace-nowrap" onClick={() => setLogOpen(true)} aria-label="Open question log">
               Log{view.log.length ? ` ${view.log.length}` : ''}
             </button>
           </div>
