@@ -96,7 +96,6 @@ export async function actionHandler(store: RoomStore, rawCode: string, token: un
     playerId = me.id;
     switch (action?.type) {
       case 'start': return startGame(room, me.id);
-      case 'rename': { me.name = cleanName(action.name, me.name); return; }
       case 'end': return endTurn(room, me.id);
       case 'flip': return flipCard(room, me.id, String(action.companyId), Boolean(action.down));
       case 'guess': return makeGuess(room, me.id, String(action.companyId));

@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DECK, normalizeRoomCode } from 'shared';
-import { api, lastName, saveSession } from '../api';
+import { api, saveSession } from '../api';
 import Logo from '../components/Logo';
 import PreviewBoard from '../components/PreviewBoard';
 
@@ -20,9 +20,8 @@ export default function Home() {
     e.preventDefault();
     setBusy('create'); setError(null);
     try {
-      const name = lastName();
-      const data = await api.createRoom(name);
-      saveSession(data.code, { token: data.token, name });
+      const data = await api.createRoom('');
+      saveSession(data.code, { token: data.token, name: '' });
       nav(`/room/${data.code}`);
     } catch (err) {
       setError((err as Error).message);
@@ -33,9 +32,8 @@ export default function Home() {
     e.preventDefault();
     setBusy('join'); setError(null);
     try {
-      const name = lastName();
-      const data = await api.joinRoom(normalizeRoomCode(code), name);
-      saveSession(data.code, { token: data.token, name });
+      const data = await api.joinRoom(normalizeRoomCode(code), '');
+      saveSession(data.code, { token: data.token, name: '' });
       nav(`/room/${data.code}`);
     } catch (err) {
       setError((err as Error).message);

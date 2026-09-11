@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { COMPANY_BY_ID, normalizeRoomCode, type Company, type RoomView } from 'shared';
 import { useRoom } from '../hooks/useRoom';
-import { lastName } from '../api';
 import Lobby from '../components/Lobby';
 import Board from '../components/Board';
 import TurnPanel from '../components/TurnPanel';
@@ -23,7 +22,7 @@ export default function Room() {
         </Link>
         {view && view.phase !== 'lobby' && (
           <span className="display rounded-full border border-line bg-white px-3 py-1 text-xs font-bold tracking-[0.15em] lg:hidden">
-            Room {view.code}
+            {view.code}
           </span>
         )}
       </nav>
@@ -39,7 +38,7 @@ export default function Room() {
       {status === 'need-name' && <AutoJoin busy={busy} error={error} onJoin={joinWithName} />}
       {status === 'joined' && view && (
         <>
-          {view.phase === 'lobby' && <Lobby view={view} onRename={(name) => act({ type: 'rename', name })} />}
+          {view.phase === 'lobby' && <Lobby view={view} />}
           {view.phase !== 'lobby' && <Game view={view} busy={busy} act={act} />}
         </>
       )}
@@ -55,7 +54,7 @@ export default function Room() {
 
 function AutoJoin({ busy, error, onJoin }: { busy: boolean; error: string | null; onJoin: (n: string) => void }) {
   // Opening an invite link joins immediately; the player can set a name once inside.
-  useEffect(() => { if (!busy && !error) onJoin(lastName()); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!busy && !error) onJoin(''); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   if (error) {
     return (
       <div className="mx-auto max-w-md panel p-6 text-center">
@@ -104,13 +103,13 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
               <li key={p.id} className={`flex items-center justify-between rounded-xl border px-3 py-2 ${active ? 'border-coral bg-coral-2' : 'border-line'}`}>
                 <span className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'} ${active ? 'pulse' : ''}`} />
-                  <b className="display">{p.name}</b>{p.id === view.me && <span className="text-xs text-ink-3">(you)</span>}
+                  <b className="display">{p.id === view.me ? 'You' : 'Opponent'}</b>
                 </span>
               </li>
             );
           })}
         </ul>
-        {opp && !opp.connected && <p className="mt-2 text-xs text-coral">{opp.name} disconnected. They can rejoin with the same link.</p>}
+        {opp && !opp.connected && <p className="mt-2 text-xs text-coral">Your opponent disconnected. They can rejoin with the same code.</p>}
 
         {!finished && (
           <div className="mt-5 border-t border-line pt-5">
@@ -145,7 +144,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
               const active = view.activePlayerId === p.id && !finished;
               return (
                 <span key={p.id} className={`inline-flex items-center gap-1 whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
-                  <b className="display">{p.name}</b>{p.id === view.me && <span className="text-ink-3">(you)</span>}
+                  <b className="display">{p.id === view.me ? 'You' : 'Opponent'}</b>
                 </span>
               );
             })}

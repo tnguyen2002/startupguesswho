@@ -51,7 +51,6 @@ export interface RoomView {
 export type Action =
   | { type: 'start' }
   | { type: 'end' }
-  | { type: 'rename'; name: string }
   | { type: 'flip'; companyId: string; down: boolean }
   | { type: 'guess'; companyId: string }
   | { type: 'rematch' };

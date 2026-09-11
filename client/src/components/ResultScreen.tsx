@@ -47,14 +47,14 @@ export default function ResultScreen({ view, busy, onRematch, onHome }: Props) {
         {won ? 'Winner' : 'Loser'}
       </h1>
       <p className={`mt-3 max-w-md text-sm sm:text-base rise ${won ? 'text-white/70' : 'text-ink-2'}`} style={{ animationDelay: '140ms' }}>
-        {iGuessed ? 'You' : opp?.name} guessed <b>{guessed?.name}</b>
+        {iGuessed ? 'You' : 'Your opponent'} guessed <b>{guessed?.name}</b>
         {f.reason === 'correct-guess' ? ', correct.' : ', wrong.'}
-        {oppSecret && <> {opp?.name}'s secret was <b>{oppSecret.name}</b>.</>}
+        {oppSecret && <> Their secret was <b>{oppSecret.name}</b>.</>}
       </p>
 
       <div className="mt-8 flex flex-wrap justify-center gap-3 rise" style={{ animationDelay: '200ms' }}>
         <button className={`btn ${won ? 'btn-coral' : 'btn-ink'}`} disabled={busy || me.wantsRematch} onClick={onRematch}>
-          {me.wantsRematch ? `Waiting for ${opp?.name}…` : opp?.wantsRematch ? `${opp.name} wants a rematch` : 'Rematch'}
+          {me.wantsRematch ? 'Waiting for opponent…' : opp?.wantsRematch ? 'Opponent wants a rematch' : 'Rematch'}
         </button>
         <button className="btn" onClick={onHome}>Home</button>
       </div>

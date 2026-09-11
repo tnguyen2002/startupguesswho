@@ -11,13 +11,13 @@ interface Props {
 /** Turn controls for a game played out loud: pass the turn, or guess. */
 export default function TurnPanel({ view, guessMode, busy, onEndTurn, onToggleGuess }: Props) {
   const myTurn = view.activePlayerId === view.me;
-  const opp = view.players.find((p) => p.id !== view.me);
 
   if (!myTurn) {
     return (
-      <p className="text-sm text-ink-2">
-        <b>{opp?.name}</b>'s turn. Answer their question out loud.
-      </p>
+      <div className="space-y-1">
+        <p className="text-sm font-semibold">Opponent's turn</p>
+        <p className="text-sm text-ink-2">Answer their question out loud.</p>
+      </div>
     );
   }
 

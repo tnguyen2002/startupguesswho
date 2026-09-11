@@ -40,9 +40,3 @@ export function loadSession(code: string): StoredSession | null {
     return raw ? (JSON.parse(raw) as StoredSession) : null;
   } catch { return null; }
 }
-export function lastName(): string {
-  try { return localStorage.getItem('sgw:name') ?? ''; } catch { return ''; }
-}
-export function rememberName(name: string) {
-  try { localStorage.setItem('sgw:name', name); } catch {}
-}

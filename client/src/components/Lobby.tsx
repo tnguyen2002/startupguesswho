@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import type { RoomView } from 'shared';
-import NameEditor from './NameEditor';
 
 interface Props {
   view: RoomView;
-  onRename: (name: string) => Promise<void>;
 }
 
-export default function Lobby({ view, onRename }: Props) {
+export default function Lobby({ view }: Props) {
   const ready = view.players.length === 2;
   const [copied, setCopied] = useState(false);
   const copy = async () => {
@@ -42,12 +40,7 @@ export default function Lobby({ view, onRename }: Props) {
         {view.players.map((p) => (
           <li key={p.id} className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3">
             <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'}`} />
-            {p.id === view.me ? (
-              <NameEditor name={p.name} onSave={onRename} />
-            ) : (
-              <span className="display font-semibold">{p.name}</span>
-            )}
-            {p.isHost && <span className="chip ml-auto">host</span>}
+            <span className="display font-semibold">{p.id === view.me ? 'You' : 'Opponent'}</span>
           </li>
         ))}
         {!ready && (
