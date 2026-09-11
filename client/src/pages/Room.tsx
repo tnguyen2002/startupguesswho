@@ -56,10 +56,10 @@ function JoinForm({ code, busy, error, onJoin }: { code: string; busy: boolean; 
     <form onSubmit={submit} className="mx-auto max-w-md panel p-6 rise">
       <p className="text-xs uppercase tracking-wider text-ink-3">You've been invited to room</p>
       <p className="display text-4xl font-extrabold tracking-[0.15em]">{code}</p>
-      <label className="mt-5 block text-xs uppercase tracking-wider text-ink-3">Your name</label>
+      <label className="mt-5 block text-xs uppercase tracking-wider text-ink-3">Your name (optional)</label>
       <input className="field mt-1" value={name} maxLength={MAX_NAME_LENGTH} autoFocus onChange={(e) => setName(e.target.value)} />
       {error && <p className="mt-2 text-sm text-coral">{error}</p>}
-      <button className="btn btn-primary mt-4 w-full" disabled={!name.trim() || busy}>Join game</button>
+      <button className="btn btn-primary mt-4 w-full" disabled={busy}>Join game</button>
     </form>
   );
 }

@@ -8,17 +8,16 @@ import type { RoomStore } from './store';
 
 export class NotFoundError extends Error {}
 
-function cleanName(name: unknown): string {
+function cleanName(name: unknown, fallback: string): string {
   const n = String(name ?? '').trim().replace(/\s+/g, ' ').slice(0, MAX_NAME_LENGTH);
-  if (!n) throw new GameError('Name is required');
-  return n;
+  return n || fallback;
 }
 
-function newPlayer(name: unknown): Player {
+function newPlayer(name: unknown, fallback: string): Player {
   return {
     id: randomUUID(),
     token: randomBytes(16).toString('hex'),
-    name: cleanName(name),
+    name: cleanName(name, fallback),
     lastSeen: Date.now(),
     secretId: null,
     flipped: [],
@@ -49,7 +48,7 @@ function playerByToken(room: Room, token: unknown): Player {
 }
 
 export async function createRoomHandler(store: RoomStore, name: unknown): Promise<JoinResponse> {
-  const player = newPlayer(name);
+  const player = newPlayer(name, 'Player 1');
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const code = generateRoomCode();
     const room = createRoom(code, player);
@@ -61,7 +60,7 @@ export async function createRoomHandler(store: RoomStore, name: unknown): Promis
 
 export async function joinRoomHandler(store: RoomStore, rawCode: string, name: unknown): Promise<JoinResponse> {
   const code = normalizeRoomCode(rawCode);
-  const player = newPlayer(name);
+  const player = newPlayer(name, 'Player 2');
   await update(store, code, (room) => {
     if (room.players.length >= 2) throw new GameError('Room is full');
     room.players.push(player);

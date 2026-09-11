@@ -55,10 +55,6 @@ export default function Home() {
               <br />
               <span className="text-coral">Guess</span> Who
             </h1>
-            <p className="mt-5 max-w-md text-sm leading-relaxed text-ink-2 rise sm:text-[15px]" style={{ animationDelay: '120ms' }}>
-              Twenty-four unicorns on the board. One of them is your opponent's secret. Ask yes/no questions about sector,
-              HQ, founding year, valuation, or whether it's still alive, and flip the losers down.
-            </p>
 
             <div className="mt-8 hidden max-w-md grid-cols-3 gap-2 rise sm:grid" style={{ animationDelay: '200ms' }}>
               {preview.map((c, i) => {
@@ -92,7 +88,7 @@ export default function Home() {
 
           {/* Right: play card */}
           <section className="panel mx-auto w-full max-w-md p-6 rise sm:p-8" style={{ animationDelay: '160ms' }}>
-            <label className="text-[11px] uppercase tracking-wider text-ink-3" htmlFor="name">Your name</label>
+            <label className="text-[11px] uppercase tracking-wider text-ink-3" htmlFor="name">Your name <span className="normal-case tracking-normal text-ink-3/70">(optional)</span></label>
             <input
               id="name"
               className="field mt-1"
@@ -105,8 +101,8 @@ export default function Home() {
 
             <form onSubmit={create} className="mt-6">
               <h2 className="display text-xl font-extrabold">Start a room</h2>
-              <p className="mt-0.5 text-xs text-ink-2">You'll get a 6-letter code to share.</p>
-              <button className="btn btn-primary mt-3 w-full" disabled={!name.trim() || busy !== null}>
+              <p className="mt-0.5 text-xs text-ink-2">One click. You'll get a 6-letter code to share.</p>
+              <button className="btn btn-primary mt-3 w-full" disabled={busy !== null}>
                 {busy === 'create' ? 'Creating…' : 'Create room'}
               </button>
             </form>
@@ -125,7 +121,7 @@ export default function Home() {
                   aria-label="Room code"
                   onChange={(e) => setCode(normalizeRoomCode(e.target.value))}
                 />
-                <button className="btn btn-ink shrink-0" disabled={!name.trim() || code.length !== 6 || busy !== null}>
+                <button className="btn btn-ink shrink-0" disabled={code.length !== 6 || busy !== null}>
                   {busy === 'join' ? '…' : 'Join'}
                 </button>
               </div>
