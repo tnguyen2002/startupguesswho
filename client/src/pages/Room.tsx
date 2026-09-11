@@ -18,7 +18,7 @@ export default function Room() {
   return (
     <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
       <nav className="mx-auto mb-3 flex max-w-7xl items-center justify-between lg:mb-5">
-        <Link to="/" className="display text-lg font-extrabold">
+        <Link to="/" className="display whitespace-nowrap text-base font-extrabold sm:text-lg">
           Startup <span className="text-coral">Guess</span> Who
         </Link>
         <span className="display border-2 border-ink bg-white px-2 py-0.5 text-sm font-bold tracking-[0.2em]">{code}</span>
