@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { handle } from '../server/src/http';
+import { handle } from './http';
 
+/** Shared adapter used by every file under api/. Routes on the request URL, not the file. */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const url = new URL(req.url ?? '/', 'http://localhost');
   const path = url.pathname.replace(/^\/api/, '') || '/';

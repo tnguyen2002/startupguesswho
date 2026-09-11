@@ -40,5 +40,5 @@ The app is a static Vite build plus one Vercel Function at `api/[...path].ts`. R
 - `shared/` types, room code helpers, and the company dataset
 - `server/src/game.ts` pure game reducer with vitest tests
 - `server/src/api.ts` room handlers with optimistic concurrency; `store.ts` Redis or in-memory storage; `http.ts` router; `dev.ts` local Express wrapper
-- `api/[...path].ts` the Vercel Function that wraps the router
+- `api/` one tiny Vercel Function per route, each re-exporting `server/src/vercel.ts`
 - `client/` Vite + React + Tailwind
