@@ -11,7 +11,7 @@
     "dev": "concurrently -n api,client -c blue,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w client",
     "test": "npm run test -w server",
-    "typecheck": "npm run typecheck -w server && npm run typecheck -w client && tsc -p tsconfig.api.json"
+    "typecheck": "npm run typecheck -w server && npm run typecheck -w client && tsc -p tsconfig.json"
   },
   "devDependencies": {
     "@vercel/node": "^5.1.14",
