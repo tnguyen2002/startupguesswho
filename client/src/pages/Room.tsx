@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { COMPANY_BY_ID, normalizeRoomCode, type Company, type RoomView } from 'shared';
 import { useRoom } from '../hooks/useRoom';
@@ -73,7 +73,9 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
   const nav = useNavigate();
   const [guessMode, setGuessMode] = useState(false);
   const [guessing, setGuessing] = useState<Company | null>(null);
-  const flipped = useMemo(() => new Set(view.myFlipped), [view.myFlipped]);
+  // Optimistic flips: update locally on click, then let the server's next snapshot confirm.
+  const [flipped, setFlipped] = useState<Set<string>>(() => new Set(view.myFlipped));
+  useEffect(() => { setFlipped(new Set(view.myFlipped)); }, [view.myFlipped]);
   const me = view.players.find((p) => p.id === view.me)!;
   const opp = view.players.find((p) => p.id !== view.me);
   const secret = view.mySecretId ? COMPANY_BY_ID[view.mySecretId] : null;
@@ -162,7 +164,10 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
             flipped={flipped}
             mode={guessMode && myTurn ? 'guess' : 'flip'}
             mySecretId={view.mySecretId}
-            onFlip={(id, down) => swallow(act({ type: 'flip', companyId: id, down }))}
+            onFlip={(id, down) => {
+              setFlipped((prev) => { const next = new Set(prev); if (down) next.add(id); else next.delete(id); return next; });
+              swallow(act({ type: 'flip', companyId: id, down }));
+            }}
             onGuess={(c) => setGuessing(c)}
           />
         </div>

@@ -76,14 +76,16 @@ export function useRoom(code: string) {
 
   const act = useCallback(async (action: Action) => {
     if (!tokenRef.current) return;
-    setBusy(true);
+    // Flips are frequent and local-feeling; don't grey out the turn buttons while one is in flight.
+    const blocking = action.type !== 'flip';
+    if (blocking) setBusy(true);
     try {
       apply(await api.act(code, tokenRef.current, action));
     } catch (e) {
       setToast((e as Error).message);
       setTimeout(() => setToast(null), 2500);
       throw e;
-    } finally { setBusy(false); }
+    } finally { if (blocking) setBusy(false); }
   }, [code, apply]);
 
   return { view, status, error, toast, busy, joinWithName, act };
