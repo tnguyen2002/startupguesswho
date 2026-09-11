@@ -15,6 +15,8 @@ function pollInterval(view: RoomView | null): number {
 
 export function useRoom(code: string) {
   const [view, setView] = useState<RoomView | null>(null);
+  const [receivedAt, setReceivedAt] = useState(() => Date.now());
+  const refreshRef = useRef<() => void>(() => {});
   const [status, setStatus] = useState<RoomStatus>('connecting');
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -27,6 +29,7 @@ export function useRoom(code: string) {
     if (viewRef.current && v.version < viewRef.current.version) return;
     viewRef.current = v;
     setView(v);
+    setReceivedAt(Date.now());
     setStatus('joined');
   }, []);
 
@@ -53,6 +56,7 @@ export function useRoom(code: string) {
       }
       if (!cancelled) timer = setTimeout(tick, pollInterval(viewRef.current) * Math.min(1 + failures, 5));
     };
+    refreshRef.current = () => { clearTimeout(timer); void tick(); };
     void tick();
     const onVisible = () => { if (document.visibilityState === 'visible') { clearTimeout(timer); void tick(); } };
     document.addEventListener('visibilitychange', onVisible);
@@ -87,5 +91,7 @@ export function useRoom(code: string) {
     } finally { setBusy(false); }
   }, [code, apply]);
 
-  return { view, status, error, toast, busy, joinWithName, act };
+  const refresh = useCallback(() => refreshRef.current(), []);
+
+  return { view, receivedAt, status, error, toast, busy, joinWithName, act, refresh };
 }

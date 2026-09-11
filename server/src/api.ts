@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { generateRoomCode, MAX_NAME_LENGTH, normalizeRoomCode, type Action, type JoinResponse, type RoomView } from '../../shared/src/index';
 import {
-  answerQuestion, askQuestion, createRoom, flipCard, GameError, makeGuess, requestRematch, startGame, viewFor,
+  answerQuestion, askQuestion, createRoom, expireTurn, flipCard, GameError, makeGuess, requestRematch, startGame, viewFor,
   type Player, type Room,
 } from './game';
 import type { RoomStore } from './store';
@@ -74,9 +74,14 @@ export async function getStateHandler(store: RoomStore, rawCode: string, token: 
   const room = await store.get(code);
   if (!room) throw new NotFoundError('Room not found or expired');
   const me = playerByToken(room, token);
-  // Presence heartbeat: only write when it's been a while, to avoid a CAS storm from polling.
-  if (Date.now() - me.lastSeen > 3000) {
-    const updated = await update(store, code, (r) => { playerByToken(r, token).lastSeen = Date.now(); }).catch(() => room);
+  const now = Date.now();
+  // Write only when needed: presence heartbeat every few seconds, or an expired ask timer.
+  const timerExpired = room.turnDeadline !== null && room.stage === 'asking' && now >= room.turnDeadline;
+  if (timerExpired || now - me.lastSeen > 3000) {
+    const updated = await update(store, code, (r) => {
+      playerByToken(r, token).lastSeen = Date.now();
+      expireTurn(r);
+    }).catch(() => room);
     return viewFor(updated, me.id);
   }
   return viewFor(room, me.id);
@@ -89,6 +94,7 @@ export async function actionHandler(store: RoomStore, rawCode: string, token: un
     const me = playerByToken(room, token);
     me.lastSeen = Date.now();
     playerId = me.id;
+    expireTurn(room); // a late action after the timer ran out is judged against the passed turn
     switch (action?.type) {
       case 'start': return startGame(room, me.id);
       case 'ask': return askQuestion(room, me.id, String(action.text ?? ''));

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { BOARD_SIZE } from '../../shared/src/index';
+import { BOARD_SIZE, TURN_SECONDS } from '../../shared/src/index';
 import {
-  createRoom, startGame, askQuestion, answerQuestion, flipCard, makeGuess, requestRematch, viewFor, GameError, type Player, type Room,
+  createRoom, startGame, askQuestion, answerQuestion, flipCard, makeGuess, requestRematch, viewFor, expireTurn, GameError, type Player, type Room,
 } from './game';
 
 function player(name: string): Player {
@@ -131,5 +131,39 @@ describe('viewFor', () => {
     expect(v.mySecretId).toBe(room.players[0].secretId);
     expect(JSON.stringify(v.players)).not.toContain('secret');
     expect(v.finish).toBeNull();
+  });
+});
+
+describe('turn timer', () => {
+  it('sets a deadline when a turn starts and clears it while answering', () => {
+    const room = twoPlayerRoom();
+    startGame(room, 'A', rand0);
+    expect(room.turnDeadline).toBeGreaterThan(Date.now() + (TURN_SECONDS - 2) * 1000);
+    askQuestion(room, 'A', 'q?');
+    expect(room.turnDeadline).toBeNull();
+    answerQuestion(room, 'B', 'yes');
+    expect(room.turnDeadline).not.toBeNull();
+  });
+
+  it('passes the turn when the deadline is missed, and not before', () => {
+    const room = twoPlayerRoom();
+    startGame(room, 'A', rand0);
+    const deadline = room.turnDeadline!;
+    expect(expireTurn(room, deadline - 1)).toBe(false);
+    expect(room.activePlayerId).toBe('A');
+    expect(expireTurn(room, deadline)).toBe(true);
+    expect(room.activePlayerId).toBe('B');
+    expect(room.turnDeadline).toBe(deadline + TURN_SECONDS * 1000);
+    expect(() => askQuestion(room, 'A', 'too late?')).toThrow(/not your turn/);
+  });
+
+  it('does nothing while a question is pending or after the game ends', () => {
+    const room = twoPlayerRoom();
+    startGame(room, 'A', rand0);
+    askQuestion(room, 'A', 'q?');
+    expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
+    answerQuestion(room, 'B', 'no');
+    makeGuess(room, 'B', room.players[0].secretId!);
+    expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
   });
 });

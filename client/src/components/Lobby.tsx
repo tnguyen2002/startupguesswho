@@ -38,7 +38,7 @@ export default function Lobby({ view, busy, onStart }: Props) {
         <div className="mt-5 space-y-1 text-sm text-ink-2">
           <p className="text-xs text-ink-3">How to play</p>
           <p>Both players see the same 24 startups. Each of you is secretly one of them.</p>
-          <p>Take turns asking yes/no questions. Flip cards down as you rule them out.</p>
+          <p>Take turns asking yes/no questions. You have 30 seconds to ask, or your turn passes. Flip cards down as you rule them out.</p>
           <p>Guess when you're sure. A wrong guess loses.</p>
           <p>Rooms close 15 minutes after everyone leaves.</p>
         </div>

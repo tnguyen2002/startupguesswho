@@ -59,6 +59,10 @@ export interface RoomView {
   finish: FinishInfo | null;
   round: number;
   version: number;
+  /** Epoch ms by which the active player must ask, or null when no timer is running. */
+  turnDeadline: number | null;
+  /** Server clock at the time of this snapshot, so clients can correct for drift. */
+  serverNow: number;
 }
 
 export type Action =
@@ -82,6 +86,8 @@ export interface ApiError {
 export const BOARD_SIZE = 24;
 export const MAX_QUESTION_LENGTH = 200;
 export const MAX_NAME_LENGTH = 20;
+/** Seconds the active player has to ask a question before the turn passes. */
+export const TURN_SECONDS = 30;
 
 export function valuationTier(b: number): string {
   if (b >= 100) return '$100B+';

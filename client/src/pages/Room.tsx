@@ -6,14 +6,15 @@ import { lastName, rememberName } from '../api';
 import Lobby from '../components/Lobby';
 import Board from '../components/Board';
 import TurnPanel from '../components/TurnPanel';
-import QuestionLog from '../components/QuestionLog';
+import Countdown from '../components/Countdown';
 import GuessModal from '../components/GuessModal';
+import ResultScreen from '../components/ResultScreen';
 import Logo from '../components/Logo';
 
 export default function Room() {
   const { code: raw = '' } = useParams();
   const code = normalizeRoomCode(raw);
-  const { view, status, error, toast, busy, joinWithName, act } = useRoom(code);
+  const { view, receivedAt, status, error, toast, busy, joinWithName, act, refresh } = useRoom(code);
 
   return (
     <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
@@ -36,7 +37,7 @@ export default function Room() {
       {status === 'joined' && view && (
         <>
           {view.phase === 'lobby' && <Lobby view={view} busy={busy} onStart={() => act({ type: 'start' }).catch(() => {})} />}
-          {view.phase !== 'lobby' && <Game view={view} busy={busy} act={act} />}
+          {view.phase !== 'lobby' && <Game view={view} receivedAt={receivedAt} busy={busy} act={act} refresh={refresh} />}
         </>
       )}
 
@@ -66,11 +67,10 @@ function JoinForm({ code, busy, error, onJoin }: { code: string; busy: boolean; 
 
 type Act = ReturnType<typeof useRoom>['act'];
 
-function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) {
+function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receivedAt: number; busy: boolean; act: Act; refresh: () => void }) {
   const nav = useNavigate();
   const [guessMode, setGuessMode] = useState(false);
   const [guessing, setGuessing] = useState<Company | null>(null);
-  const [logOpen, setLogOpen] = useState(false);
   const flipped = useMemo(() => new Set(view.myFlipped), [view.myFlipped]);
   const me = view.players.find((p) => p.id === view.me)!;
   const opp = view.players.find((p) => p.id !== view.me);
@@ -137,16 +137,14 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
                 </span>
               );
             })}
-            <button className="btn btn-sm whitespace-nowrap" onClick={() => setLogOpen(true)} aria-label="Open question log">
-              Log{view.log.length ? ` ${view.log.length}` : ''}
-            </button>
+            {!finished && <Countdown deadline={view.turnDeadline} serverNow={view.serverNow} receivedAt={receivedAt} size="sm" />}
           </div>
         </div>
       </div>
 
       {/* Center: board */}
       <section className="lg:order-none">
-        {finished && view.finish && <ResultBanner view={view} busy={busy} onRematch={() => swallow(act({ type: 'rematch' }))} onHome={() => nav('/')} />}
+        {finished && view.finish && <ResultScreen view={view} busy={busy} onRematch={() => swallow(act({ type: 'rematch' }))} onHome={() => nav('/')} />}
         <div className={finished ? 'pointer-events-none opacity-70' : ''}>
           <Board
             board={view.board}
@@ -159,35 +157,20 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
         </div>
       </section>
 
-      {/* Right: questions */}
-      <aside className="panel hidden max-h-[calc(100vh-5rem)] min-h-[320px] flex-col p-4 lg:sticky lg:top-5 lg:flex">
-        <p className="mb-3 text-xs text-ink-3">Questions</p>
-        <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
-        {!finished && (
-          <div className="mt-3 hidden border-t border-line pt-3 lg:block">
-            <TurnPanel
-              view={view}
-              guessMode={guessMode}
-              busy={busy}
-              onAsk={(text) => act({ type: 'ask', text })}
-              onAnswer={(answer) => act({ type: 'answer', answer })}
-              onToggleGuess={() => setGuessMode((g) => !g)}
-            />
-          </div>
-        )}
-      </aside>
-
-      {/* Mobile: question log as a bottom sheet */}
-      {logOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-ink/40 backdrop-blur-sm lg:hidden" onClick={() => setLogOpen(false)}>
-          <div className="panel flex max-h-[75vh] w-full flex-col bg-paper p-4 rise" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs text-ink-3">Questions</p>
-              <button className="btn btn-sm" onClick={() => setLogOpen(false)}>Close</button>
-            </div>
-            <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
-          </div>
-        </div>
+      {/* Right: current turn */}
+      {!finished && (
+        <aside className="panel hidden p-4 lg:sticky lg:top-5 lg:block lg:self-start">
+          <TurnPanel
+            view={view}
+            receivedAt={receivedAt}
+            guessMode={guessMode}
+            busy={busy}
+            onAsk={(text) => act({ type: 'ask', text })}
+            onAnswer={(answer) => act({ type: 'answer', answer })}
+            onToggleGuess={() => setGuessMode((g) => !g)}
+            onExpire={refresh}
+          />
+        </aside>
       )}
 
       {/* Mobile: turn controls pinned to the bottom of the screen */}
@@ -198,11 +181,13 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
         >
           <TurnPanel
             view={view}
+            receivedAt={receivedAt}
             guessMode={guessMode}
             busy={busy}
             onAsk={(text) => act({ type: 'ask', text })}
             onAnswer={(answer) => act({ type: 'answer', answer })}
             onToggleGuess={() => setGuessMode((g) => !g)}
+            onExpire={refresh}
           />
         </div>
       )}
@@ -221,33 +206,6 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
           }}
         />
       )}
-    </div>
-  );
-}
-
-function ResultBanner({ view, busy, onRematch, onHome }: { view: RoomView; busy: boolean; onRematch: () => void; onHome: () => void }) {
-  const f = view.finish!;
-  const won = f.winnerId === view.me;
-  const me = view.players.find((p) => p.id === view.me)!;
-  const opp = view.players.find((p) => p.id !== view.me);
-  const guessed = COMPANY_BY_ID[f.guessedCompanyId];
-  const oppSecret = opp ? COMPANY_BY_ID[f.secrets[opp.id]] : null;
-  const iGuessed = f.reason === 'correct-guess' ? won : !won;
-  return (
-    <div className={`panel mb-5 p-5 rise ${won ? 'bg-mint-2 text-mint' : 'bg-coral-2'}`}>
-      <p className="text-xs text-ink-2">Round {view.round} over</p>
-      <h2 className="display text-4xl font-bold">{won ? 'You win.' : 'You lose.'}</h2>
-      <p className="mt-2 text-sm">
-        {iGuessed ? 'You' : opp?.name} guessed <b>{guessed?.name}</b>
-        {f.reason === 'correct-guess' ? ' — correct!' : ' — wrong.'}
-        {oppSecret && <> {opp?.name}'s secret was <b>{oppSecret.name}</b>.</>}
-      </p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <button className="btn btn-ink" disabled={busy || me.wantsRematch} onClick={onRematch}>
-          {me.wantsRematch ? `Waiting for ${opp?.name}…` : opp?.wantsRematch ? `${opp.name} wants a rematch!` : 'Rematch'}
-        </button>
-        <button className="btn" onClick={onHome}>Home</button>
-      </div>
     </div>
   );
 }
