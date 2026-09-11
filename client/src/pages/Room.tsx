@@ -1,12 +1,13 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { COMPANY_BY_ID, MAX_NAME_LENGTH, normalizeRoomCode, type Company, type RoomView } from 'shared';
+import { COMPANY_BY_ID, normalizeRoomCode, type Company, type RoomView } from 'shared';
 import { useRoom } from '../hooks/useRoom';
-import { lastName, rememberName } from '../api';
+import { lastName } from '../api';
 import Lobby from '../components/Lobby';
 import Board from '../components/Board';
 import TurnPanel from '../components/TurnPanel';
 import Countdown from '../components/Countdown';
+import NameEditor from '../components/NameEditor';
 import GuessModal from '../components/GuessModal';
 import ResultScreen from '../components/ResultScreen';
 import Logo from '../components/Logo';
@@ -18,11 +19,10 @@ export default function Room() {
 
   return (
     <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
-      <nav className="mx-auto mb-3 flex max-w-7xl items-center justify-between lg:mb-5">
+      <nav className="mx-auto mb-3 flex max-w-7xl items-center gap-3 lg:mb-5">
         <Link to="/" className="display whitespace-nowrap text-base font-bold sm:text-lg">
           Startup 🦄 Guess Who
         </Link>
-        <span className="display border border-line bg-white px-2 py-0.5 text-sm font-bold tracking-[0.2em] rounded-xl">{code}</span>
       </nav>
 
       {status === 'connecting' && <p className="text-center text-ink-3">Connecting…</p>}
@@ -33,10 +33,10 @@ export default function Room() {
           <Link to="/" className="btn mt-5">Back home</Link>
         </div>
       )}
-      {status === 'need-name' && <JoinForm code={code} busy={busy} error={error} onJoin={joinWithName} />}
+      {status === 'need-name' && <AutoJoin busy={busy} error={error} onJoin={joinWithName} />}
       {status === 'joined' && view && (
         <>
-          {view.phase === 'lobby' && <Lobby view={view} busy={busy} onStart={() => act({ type: 'start' }).catch(() => {})} />}
+          {view.phase === 'lobby' && <Lobby view={view} onRename={(name) => act({ type: 'rename', name })} />}
           {view.phase !== 'lobby' && <Game view={view} receivedAt={receivedAt} busy={busy} act={act} refresh={refresh} />}
         </>
       )}
@@ -50,19 +50,19 @@ export default function Room() {
   );
 }
 
-function JoinForm({ code, busy, error, onJoin }: { code: string; busy: boolean; error: string | null; onJoin: (n: string) => void }) {
-  const [name, setName] = useState(lastName());
-  const submit = (e: FormEvent) => { e.preventDefault(); rememberName(name); onJoin(name); };
-  return (
-    <form onSubmit={submit} className="mx-auto max-w-md panel p-6 rise">
-      <p className="text-xs text-ink-3">You've been invited to room</p>
-      <p className="display text-4xl font-bold tracking-[0.15em]">{code}</p>
-      <label className="mt-5 block text-xs text-ink-3">Your name (optional)</label>
-      <input className="field mt-1" value={name} maxLength={MAX_NAME_LENGTH} autoFocus onChange={(e) => setName(e.target.value)} />
-      {error && <p className="mt-2 text-sm text-coral">{error}</p>}
-      <button className="btn btn-primary mt-4 w-full" disabled={busy}>Join game</button>
-    </form>
-  );
+function AutoJoin({ busy, error, onJoin }: { busy: boolean; error: string | null; onJoin: (n: string) => void }) {
+  // Opening an invite link joins immediately; the player can set a name once inside.
+  useEffect(() => { if (!busy && !error) onJoin(lastName()); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (error) {
+    return (
+      <div className="mx-auto max-w-md panel p-6 text-center">
+        <p className="display text-xl font-bold">Couldn't join this room</p>
+        <p className="mt-2 text-sm text-ink-2">{error}</p>
+        <Link to="/" className="btn mt-5">Back home</Link>
+      </div>
+    );
+  }
+  return <p className="text-center text-ink-3">Joining…</p>;
 }
 
 type Act = ReturnType<typeof useRoom>['act'];
@@ -81,38 +81,55 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
   const swallow = (p: Promise<unknown>) => p.catch(() => {});
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-4 pb-36 lg:gap-5 lg:grid-cols-[200px_1fr_280px] lg:pb-0 xl:grid-cols-[220px_1fr_320px]">
-      {/* Left: secret + status */}
-      <aside className="hidden space-y-4 lg:block lg:sticky lg:top-5 lg:self-start">
+    <div className="mx-auto grid max-w-6xl gap-4 pb-36 lg:grid-cols-[300px_1fr] lg:gap-8 lg:pb-0">
+      {/* Desktop sidebar: secret, players, turn controls */}
+      <aside className="panel hidden self-start p-5 lg:sticky lg:top-5 lg:block">
         {secret && (
-          <div className="panel p-4">
-            <p className="text-xs text-ink-3">Your secret</p>
-            <div className="mt-2 flex items-center gap-3 lg:block">
-              <Logo company={secret} size={56} />
-              <div>
-                <div className="display mt-1 text-xl font-bold leading-tight">{secret.name}</div>
-              </div>
+          <div className="flex items-center gap-3">
+            <Logo company={secret} size={48} />
+            <div className="min-w-0">
+              <p className="text-xs text-ink-3">Your secret</p>
+              <p className="display truncate text-lg font-bold leading-tight">{secret.name}</p>
             </div>
-            <p className="mt-2 text-[11px] text-ink-3">{opp?.name} is trying to guess this.</p>
           </div>
         )}
-        <div className="panel p-4">
-          <p className="text-xs text-ink-3">Round {view.round}</p>
-          <ul className="mt-2 grid grid-cols-2 gap-2 text-sm lg:grid-cols-1">
-            {view.players.map((p) => {
-              const active = view.activePlayerId === p.id && !finished;
-              return (
-                <li key={p.id} className={`flex items-center justify-between border-2 px-2 py-1.5 ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
-                  <span className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'} ${active ? 'pulse' : ''}`} />
-                    <b className="display">{p.id === view.me ? 'You' : p.name}</b>
-                  </span>
-                  <span className="text-xs text-ink-2">{p.remaining} left</span>
-                </li>
-              );
-            })}
-          </ul>
-          {opp && !opp.connected && <p className="mt-2 text-xs text-coral">{opp.name} disconnected. They can rejoin with the same link.</p>}
+
+        <ul className="mt-5 space-y-2 text-sm">
+          {view.players.map((p) => {
+            const active = view.activePlayerId === p.id && !finished;
+            return (
+              <li key={p.id} className={`flex items-center justify-between rounded-xl border px-3 py-2 ${active ? 'border-coral bg-coral-2' : 'border-line'}`}>
+                <span className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'} ${active ? 'pulse' : ''}`} />
+                  {p.id === view.me ? (
+                    <NameEditor name={p.name} onSave={(name) => act({ type: 'rename', name })} />
+                  ) : (
+                    <b className="display">{p.name}</b>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        {opp && !opp.connected && <p className="mt-2 text-xs text-coral">{opp.name} disconnected. They can rejoin with the same link.</p>}
+
+        {!finished && (
+          <div className="mt-5 border-t border-line pt-5">
+            <TurnPanel
+              view={view}
+              receivedAt={receivedAt}
+              guessMode={guessMode}
+              busy={busy}
+              onAsk={(text) => act({ type: 'ask', text })}
+              onAnswer={(answer) => act({ type: 'answer', answer })}
+              onToggleGuess={() => setGuessMode((g) => !g)}
+              onStartTimer={() => act({ type: 'timer' })}
+              onExpire={refresh}
+            />
+          </div>
+        )}
+        <div className="mt-5 flex justify-end">
+          <span className="display rounded-full border border-line bg-white px-2.5 py-1 text-xs font-bold tracking-[0.15em]">{view.code}</span>
         </div>
       </aside>
 
@@ -123,7 +140,7 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Logo company={secret} size={36} />
               <div className="min-w-0 leading-tight">
-                <div className="text-[10px] text-ink-3">Your secret</div>
+                <div className="text-[10px] text-ink-3">Your secret · {view.code}</div>
                 <div className="display truncate text-sm font-bold">{secret.name}</div>
               </div>
             </div>
@@ -132,8 +149,12 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
             {view.players.map((p) => {
               const active = view.activePlayerId === p.id && !finished;
               return (
-                <span key={p.id} className={`whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
-                  <b className="display">{p.id === view.me ? 'You' : p.name}</b> {p.remaining}
+                <span key={p.id} className={`inline-flex items-center gap-1 whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
+                  {p.id === view.me ? (
+                    <NameEditor name={p.name} onSave={(name) => act({ type: 'rename', name })} />
+                  ) : (
+                    <b className="display">{p.name}</b>
+                  )}
                 </span>
               );
             })}
@@ -143,7 +164,7 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
       </div>
 
       {/* Center: board */}
-      <section className="lg:order-none">
+      <section className="mx-auto w-full max-w-[760px] lg:self-start">
         {finished && view.finish && <ResultScreen view={view} busy={busy} onRematch={() => swallow(act({ type: 'rematch' }))} onHome={() => nav('/')} />}
         <div className={finished ? 'pointer-events-none opacity-70' : ''}>
           <Board
@@ -156,22 +177,6 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
           />
         </div>
       </section>
-
-      {/* Right: current turn */}
-      {!finished && (
-        <aside className="panel hidden p-4 lg:sticky lg:top-5 lg:block lg:self-start">
-          <TurnPanel
-            view={view}
-            receivedAt={receivedAt}
-            guessMode={guessMode}
-            busy={busy}
-            onAsk={(text) => act({ type: 'ask', text })}
-            onAnswer={(answer) => act({ type: 'answer', answer })}
-            onToggleGuess={() => setGuessMode((g) => !g)}
-            onExpire={refresh}
-          />
-        </aside>
-      )}
 
       {/* Mobile: turn controls pinned to the bottom of the screen */}
       {!finished && (
@@ -187,6 +192,7 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
             onAsk={(text) => act({ type: 'ask', text })}
             onAnswer={(answer) => act({ type: 'answer', answer })}
             onToggleGuess={() => setGuessMode((g) => !g)}
+            onStartTimer={() => act({ type: 'timer' })}
             onExpire={refresh}
           />
         </div>

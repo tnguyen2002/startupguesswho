@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { MAX_QUESTION_LENGTH, type RoomView } from 'shared';
 import Countdown from './Countdown';
 
-const hasPointer = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
-
 interface Props {
   view: RoomView;
   receivedAt: number;
@@ -12,11 +10,13 @@ interface Props {
   onAsk: (text: string) => Promise<void>;
   onAnswer: (a: 'yes' | 'no') => Promise<void>;
   onToggleGuess: () => void;
+  onStartTimer: () => Promise<void>;
   onExpire: () => void;
 }
 
 /** The single ask/answer exchange plus the turn timer. Replaces the old question log. */
-export default function TurnPanel({ view, receivedAt, guessMode, busy, onAsk, onAnswer, onToggleGuess, onExpire }: Props) {
+export default function TurnPanel({ view, receivedAt, guessMode, busy, onAsk, onAnswer, onToggleGuess, onStartTimer, onExpire }: Props) {
+  const timerRunning = view.turnDeadline !== null;
   const [text, setText] = useState('');
   const myTurn = view.activePlayerId === view.me;
   const opp = view.players.find((p) => p.id !== view.me);
@@ -67,7 +67,11 @@ export default function TurnPanel({ view, receivedAt, guessMode, busy, onAsk, on
         {lastExchange}
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-ink-2">
-            <b>{opp?.name}</b> is thinking of a question…
+            {timerRunning ? (
+              <><b>{opp?.name}</b> is thinking of a question…</>
+            ) : (
+              <><b>{opp?.name}</b>'s turn. Waiting for them to start…</>
+            )}
           </p>
           {timer}
         </div>
@@ -85,6 +89,21 @@ export default function TurnPanel({ view, receivedAt, guessMode, busy, onAsk, on
           {timer}
         </div>
         <button className="btn btn-sm" onClick={onToggleGuess}>Cancel guess</button>
+      </div>
+    );
+  }
+
+  if (!timerRunning) {
+    return (
+      <div className="space-y-2">
+        {lastExchange}
+        <p className="text-sm font-semibold text-coral">Your turn</p>
+        <div className="flex gap-2">
+          <button className="btn btn-ink flex-1" type="button" disabled={busy} onClick={() => onStartTimer().catch(() => {})}>
+            Ask a question
+          </button>
+          <button className="btn btn-coral" type="button" onClick={onToggleGuess}>Guess</button>
+        </div>
       </div>
     );
   }
@@ -109,7 +128,7 @@ export default function TurnPanel({ view, receivedAt, guessMode, busy, onAsk, on
         placeholder="Ask a yes/no question…"
         value={text}
         maxLength={MAX_QUESTION_LENGTH}
-        autoFocus={hasPointer}
+        autoFocus
         onChange={(e) => setText(e.target.value)}
       />
       <div className="flex gap-2">

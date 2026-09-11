@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DECK, MAX_NAME_LENGTH, normalizeRoomCode } from 'shared';
-import { api, lastName, rememberName, saveSession } from '../api';
+import { DECK, normalizeRoomCode } from 'shared';
+import { api, lastName, saveSession } from '../api';
 import Logo from '../components/Logo';
 import PreviewBoard from '../components/PreviewBoard';
 
@@ -10,7 +10,6 @@ const PREVIEW_IDS = ['stripe', 'anduril', 'canva', 'revolut', 'spacex', 'notion'
 export default function Home() {
   const nav = useNavigate();
   const [params] = useSearchParams();
-  const [name, setName] = useState(lastName());
   const [code, setCode] = useState(params.get('code') ?? '');
   const [busy, setBusy] = useState<'create' | 'join' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +18,7 @@ export default function Home() {
     e.preventDefault();
     setBusy('create'); setError(null);
     try {
-      rememberName(name);
+      const name = lastName();
       const data = await api.createRoom(name);
       saveSession(data.code, { token: data.token, name });
       nav(`/room/${data.code}`);
@@ -32,7 +31,7 @@ export default function Home() {
     e.preventDefault();
     setBusy('join'); setError(null);
     try {
-      rememberName(name);
+      const name = lastName();
       const data = await api.joinRoom(normalizeRoomCode(code), name);
       saveSession(data.code, { token: data.token, name });
       nav(`/room/${data.code}`);
@@ -59,18 +58,8 @@ export default function Home() {
 
             {/* Right: play card */}
             <section className="panel flex w-full flex-col justify-center p-6 rise sm:p-8" style={{ animationDelay: '160ms' }}>
-              <label className="text-[11px] text-ink-3" htmlFor="name">Your name <span className="normal-case tracking-normal text-ink-3">(optional)</span></label>
-              <input
-                id="name"
-                className="field mt-1"
-                value={name}
-                maxLength={MAX_NAME_LENGTH}
-                placeholder="e.g. Ludwig"
-                autoComplete="nickname"
-                onChange={(e) => setName(e.target.value)}
-              />
 
-              <form onSubmit={create} className="mt-6">
+              <form onSubmit={create}>
                 <h2 className="display text-xl font-bold">Start a room</h2>
                 <p className="mt-0.5 text-xs text-ink-2">One click. You'll get a 6-letter code to share.</p>
                 <button className="btn btn-primary mt-3 w-full" disabled={busy !== null}>
@@ -96,7 +85,7 @@ export default function Home() {
                     {busy === 'join' ? '…' : 'Join'}
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-ink-2">Paste the code or open the link your friend sent you.</p>
+                <p className="mt-2 text-xs text-ink-2">Enter the code your friend sent you.</p>
               </form>
 
               {error && <p className="mt-4 border border-coral/30 bg-coral-2 px-3 py-2 text-sm rounded-xl">{error}</p>}

@@ -12,7 +12,7 @@ interface Props {
 
 export default function Board({ board, flipped, mode, mySecretId, onFlip, onGuess }: Props) {
   return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-3 xl:grid-cols-6">
+    <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
       {board.map((c, i) => (
         <CompanyCard
           key={c.id}

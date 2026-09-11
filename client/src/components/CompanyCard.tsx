@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { Company } from 'shared';
 import Logo from './Logo';
 
@@ -10,7 +11,19 @@ interface Props {
   index: number;
 }
 
+function useWide() {
+  const [wide, setWide] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 640px)');
+    const on = () => setWide(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return wide;
+}
+
 export default function CompanyCard({ company, down, mode, isSecret, onClick, index }: Props) {
+  const wide = useWide();
   return (
     <button
       type="button"
@@ -27,13 +40,13 @@ export default function CompanyCard({ company, down, mode, isSecret, onClick, in
       )}
       <div className={`card-inner ${down ? 'is-down' : ''}`}>
         <div
-          className={`card-face card-front flex aspect-square flex-col rounded-xl border border-line bg-white p-2 transition-shadow ${
-            mode === 'guess' ? 'group-hover:bg-coral-2 cursor-crosshair' : 'group-hover:-translate-y-0.5 cursor-pointer'
+          className={`card-face card-front flex aspect-square flex-col rounded-2xl border border-line bg-white p-1.5 sm:p-2 transition-shadow ${
+            mode === 'guess' ? 'group-hover:bg-coral-2 cursor-crosshair' : 'group-hover:-translate-y-0.5 group-hover:shadow-md cursor-pointer'
           }`}
         >
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
-            <Logo company={company} size={56} />
-            <div className="display w-full break-words text-[12px] font-bold leading-tight sm:text-[13px]">{company.name}</div>
+          <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center sm:gap-2">
+            <Logo company={company} size={wide ? 56 : 28} />
+            <div className="display line-clamp-2 w-full break-words text-[9px] font-semibold leading-[1.1] sm:text-[13px] sm:leading-tight">{company.name}</div>
           </div>
           {mode === 'guess' && (
             <div className="display pointer-events-none absolute inset-x-0 bottom-0 translate-y-full rounded-b-xl bg-coral py-1 text-center text-xs font-bold text-white transition-transform group-hover:translate-y-0">
@@ -41,7 +54,7 @@ export default function CompanyCard({ company, down, mode, isSecret, onClick, in
             </div>
           )}
         </div>
-        <div className="card-face card-back rounded-xl border border-line" aria-hidden="true" />
+        <div className="card-face card-back rounded-2xl border border-line" aria-hidden="true" />
       </div>
     </button>
   );

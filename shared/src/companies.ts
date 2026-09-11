@@ -148,7 +148,7 @@ export const CURATED_IDS = [
   'notion', 'canva', 'vercel', 'supabase', 'linear', 'airtable', 'miro', 'grammarly',
   // Everything else
   'spacex', 'discord', 'epicgames', 'bytedance', 'neuralink', 'anduril', 'helsing', 'databricks',
-  'deel', 'rippling', 'gusto', 'whatnot', 'faire', 'zipline', 'colossal', 'liquiddeath', 'oura', 'dji', 'strava',
+  'deel', 'rippling', 'gusto', 'whatnot', 'faire', 'zipline', 'oura', 'dji', 'strava',
 ];
 
 const curated = new Set(CURATED_IDS);

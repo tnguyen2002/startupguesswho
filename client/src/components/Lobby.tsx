@@ -1,57 +1,63 @@
+import { useState } from 'react';
 import type { RoomView } from 'shared';
-import InviteBox from './InviteBox';
+import NameEditor from './NameEditor';
 
 interface Props {
   view: RoomView;
-  busy: boolean;
-  onStart: () => void;
+  onRename: (name: string) => Promise<void>;
 }
 
-export default function Lobby({ view, busy, onStart }: Props) {
-  const me = view.players.find((p) => p.id === view.me)!;
+export default function Lobby({ view, onRename }: Props) {
   const ready = view.players.length === 2;
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(view.code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+
   return (
-    <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
-      <div className="rise">
-        <InviteBox code={view.code} />
-        <p className="mt-4 text-sm text-ink-2">
-          Send the code or link to a friend. When they open it and enter their name, they'll appear here.
-        </p>
-      </div>
-      <div className="panel p-5 rise" style={{ animationDelay: '80ms' }}>
-        <p className="text-xs text-ink-3">Players</p>
-        <ul className="mt-2 space-y-2">
-          {view.players.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 border border-line bg-white px-3 py-2 rounded-xl">
-              <span className={`h-2.5 w-2.5 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'}`} />
-              <span className="display font-bold">{p.name}</span>
-              {p.isHost && <span className="chip bg-mint-2 text-mint">host</span>}
-              {p.id === view.me && <span className="text-xs text-ink-3">(you)</span>}
-            </li>
-          ))}
-          {!ready && (
-            <li className="flex items-center gap-3 border border-dashed border-line px-3 py-2 text-ink-3 rounded-xl">
-              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-coral" /> waiting for a second player…
-            </li>
-          )}
-        </ul>
-        <div className="mt-5 space-y-1 text-sm text-ink-2">
-          <p className="text-xs text-ink-3">How to play</p>
-          <p>Both players see the same 24 startups. Each of you is secretly one of them.</p>
-          <p>Take turns asking yes/no questions. You have 30 seconds to ask, or your turn passes. Flip cards down as you rule them out.</p>
-          <p>Guess when you're sure. A wrong guess loses.</p>
-          <p>Rooms close 15 minutes after everyone leaves.</p>
-        </div>
-        <div className="mt-5">
-          {me.isHost ? (
-            <button className="btn btn-primary w-full" disabled={!ready || busy} onClick={onStart}>
-              {ready ? 'Start game' : 'Need 2 players'}
-            </button>
+    <div className="panel mx-auto w-full max-w-md p-6 rise sm:p-8">
+      <p className="text-xs text-ink-3">Invite code</p>
+      <div className="mt-1 flex items-center gap-3">
+        <span className="display select-all font-mono text-5xl font-bold tracking-[0.18em] sm:text-6xl">{view.code}</span>
+        <button
+          type="button"
+          onClick={copy}
+          aria-label={copied ? 'Copied' : 'Copy code'}
+          title={copied ? 'Copied' : 'Copy code'}
+          className="btn rounded-xl p-2.5"
+        >
+          {copied ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-mint"><path d="M20 6 9 17l-5-5" /></svg>
           ) : (
-            <p className="text-sm text-ink-2">Waiting for the host to start…</p>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
           )}
-        </div>
+        </button>
       </div>
+
+      <ul className="mt-8 space-y-2">
+        {view.players.map((p) => (
+          <li key={p.id} className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3">
+            <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'}`} />
+            {p.id === view.me ? (
+              <NameEditor name={p.name} onSave={onRename} />
+            ) : (
+              <span className="display font-semibold">{p.name}</span>
+            )}
+            {p.isHost && <span className="chip ml-auto">host</span>}
+          </li>
+        ))}
+        {!ready && (
+          <li className="flex items-center gap-3 rounded-xl border border-dashed border-line px-4 py-3 text-ink-3">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-coral" /> Waiting for a second player
+          </li>
+        )}
+      </ul>
+
+      <p className="mt-6 text-center text-xs text-ink-3">The game starts as soon as a second player joins.</p>
     </div>
   );
 }

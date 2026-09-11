@@ -87,7 +87,7 @@ export function opponentOf(room: Room, playerId: string): Player {
   return room.players.find((p) => p.id !== playerId) ?? fail('No opponent yet');
 }
 
-function dealBoard(room: Room, rand: () => number, now: number = Date.now()) {
+function dealBoard(room: Room, rand: () => number) {
   const picked = shuffle(DECK, rand).slice(0, BOARD_SIZE);
   room.board = picked;
   const secrets = shuffle(picked, rand);
@@ -98,7 +98,7 @@ function dealBoard(room: Room, rand: () => number, now: number = Date.now()) {
   });
   room.activePlayerId = room.players[Math.floor(rand() * room.players.length)].id;
   room.stage = 'asking';
-  room.turnDeadline = now + TURN_SECONDS * 1000;
+  room.turnDeadline = null; // the active player starts their own timer
   room.pendingQuestion = null;
   room.log = [];
   room.finish = null;
@@ -113,10 +113,20 @@ export function startGame(room: Room, playerId: string, rand: () => number = Mat
   dealBoard(room, rand);
 }
 
+/** The active player presses Ask to start their 30-second window. */
+export function startTimer(room: Room, playerId: string, now: number = Date.now()) {
+  if (room.phase !== 'playing') fail('Game is not in progress');
+  if (room.activePlayerId !== playerId) fail("It's not your turn");
+  if (room.stage !== 'asking') fail('Waiting for an answer');
+  if (room.turnDeadline !== null) return; // already running
+  room.turnDeadline = now + TURN_SECONDS * 1000;
+}
+
 export function askQuestion(room: Room, playerId: string, text: string) {
   if (room.phase !== 'playing') fail('Game is not in progress');
   if (room.activePlayerId !== playerId) fail("It's not your turn");
   if (room.stage !== 'asking') fail('Waiting for an answer');
+  if (room.turnDeadline === null) fail('Press Ask to start your turn first');
   const q = text.trim();
   if (!q) fail('Question cannot be empty');
   if (q.length > MAX_QUESTION_LENGTH) fail(`Question must be under ${MAX_QUESTION_LENGTH} characters`);
@@ -134,7 +144,7 @@ export function answerQuestion(room: Room, playerId: string, answer: Answer) {
   room.pendingQuestion = null;
   room.activePlayerId = playerId; // answerer takes the next turn
   room.stage = 'asking';
-  room.turnDeadline = Date.now() + TURN_SECONDS * 1000;
+  room.turnDeadline = null;
 }
 
 export function flipCard(room: Room, playerId: string, companyId: string, down: boolean) {
@@ -186,7 +196,7 @@ export function expireTurn(room: Room, now: number = Date.now()): boolean {
   const opp = room.players.find((p) => p.id !== room.activePlayerId);
   if (!opp) return false;
   room.activePlayerId = opp.id;
-  room.turnDeadline = now + TURN_SECONDS * 1000;
+  room.turnDeadline = null; // the next player starts their own timer
   return true;
 }
 

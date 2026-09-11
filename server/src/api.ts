@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { generateRoomCode, MAX_NAME_LENGTH, normalizeRoomCode, type Action, type JoinResponse, type RoomView } from '../../shared/src/index';
 import {
-  answerQuestion, askQuestion, createRoom, expireTurn, flipCard, GameError, makeGuess, requestRematch, startGame, viewFor,
+  answerQuestion, askQuestion, createRoom, expireTurn, flipCard, GameError, makeGuess, requestRematch, startGame, startTimer, viewFor,
   type Player, type Room,
 } from './game';
 import type { RoomStore } from './store';
@@ -64,6 +64,8 @@ export async function joinRoomHandler(store: RoomStore, rawCode: string, name: u
   await update(store, code, (room) => {
     if (room.players.length >= 2) throw new GameError('Room is full');
     room.players.push(player);
+    // Two players is a game: deal immediately, no lobby start button.
+    if (room.phase === 'lobby') startGame(room, room.hostId);
   });
   return { code, token: player.token, playerId: player.id };
 }
@@ -97,6 +99,8 @@ export async function actionHandler(store: RoomStore, rawCode: string, token: un
     expireTurn(room); // a late action after the timer ran out is judged against the passed turn
     switch (action?.type) {
       case 'start': return startGame(room, me.id);
+      case 'timer': return startTimer(room, me.id);
+      case 'rename': { me.name = cleanName(action.name, me.name); return; }
       case 'ask': return askQuestion(room, me.id, String(action.text ?? ''));
       case 'answer': return answerQuestion(room, me.id, action.answer);
       case 'flip': return flipCard(room, me.id, String(action.companyId), Boolean(action.down));

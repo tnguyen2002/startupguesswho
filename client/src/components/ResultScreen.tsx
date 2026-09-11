@@ -58,7 +58,6 @@ export default function ResultScreen({ view, busy, onRematch, onHome }: Props) {
         </button>
         <button className="btn" onClick={onHome}>Home</button>
       </div>
-      <p className={`mt-4 text-xs ${won ? 'text-white/50' : 'text-ink-3'}`}>Round {view.round}</p>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { BOARD_SIZE, TURN_SECONDS } from '../../shared/src/index';
 import {
-  createRoom, startGame, askQuestion, answerQuestion, flipCard, makeGuess, requestRematch, viewFor, expireTurn, GameError, type Player, type Room,
+  createRoom, startGame, askQuestion, answerQuestion, flipCard, makeGuess, requestRematch, viewFor, expireTurn, startTimer, GameError, type Player, type Room,
 } from './game';
 
 function player(name: string): Player {
@@ -46,6 +46,8 @@ describe('turns', () => {
     startGame(room, 'A', rand0);
     expect(room.activePlayerId).toBe('A');
     expect(() => askQuestion(room, 'B', 'Is it fintech?')).toThrow(/not your turn/);
+    expect(() => askQuestion(room, 'A', 'Is it fintech?')).toThrow(/start your turn/);
+    startTimer(room, 'A');
     askQuestion(room, 'A', 'Is it fintech?');
     expect(room.stage).toBe('answering');
     expect(() => askQuestion(room, 'A', 'again?')).toThrow(/Waiting/);
@@ -60,6 +62,7 @@ describe('turns', () => {
   it('rejects empty questions', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
+    startTimer(room, 'A');
     expect(() => askQuestion(room, 'A', '   ')).toThrow(/empty/);
   });
 });
@@ -103,6 +106,7 @@ describe('guess', () => {
   it('cannot guess while waiting for an answer', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
+    startTimer(room, 'A');
     askQuestion(room, 'A', 'q?');
     expect(() => makeGuess(room, 'A', room.board[0].id)).toThrow(/Waiting/);
   });
@@ -135,31 +139,46 @@ describe('viewFor', () => {
 });
 
 describe('turn timer', () => {
-  it('sets a deadline when a turn starts and clears it while answering', () => {
+  it('does not run until the active player starts it', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
-    expect(room.turnDeadline).toBeGreaterThan(Date.now() + (TURN_SECONDS - 2) * 1000);
+    expect(room.turnDeadline).toBeNull();
+    expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
+    expect(() => startTimer(room, 'B')).toThrow(/not your turn/);
+    startTimer(room, 'A', 1000);
+    expect(room.turnDeadline).toBe(1000 + TURN_SECONDS * 1000);
+    startTimer(room, 'A', 5000); // pressing again does not reset it
+    expect(room.turnDeadline).toBe(1000 + TURN_SECONDS * 1000);
+  });
+
+  it('clears the timer while answering and for the next player', () => {
+    const room = twoPlayerRoom();
+    startGame(room, 'A', rand0);
+    startTimer(room, 'A');
     askQuestion(room, 'A', 'q?');
     expect(room.turnDeadline).toBeNull();
     answerQuestion(room, 'B', 'yes');
-    expect(room.turnDeadline).not.toBeNull();
+    expect(room.activePlayerId).toBe('B');
+    expect(room.turnDeadline).toBeNull();
   });
 
   it('passes the turn when the deadline is missed, and not before', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
+    startTimer(room, 'A', 1000);
     const deadline = room.turnDeadline!;
     expect(expireTurn(room, deadline - 1)).toBe(false);
     expect(room.activePlayerId).toBe('A');
     expect(expireTurn(room, deadline)).toBe(true);
     expect(room.activePlayerId).toBe('B');
-    expect(room.turnDeadline).toBe(deadline + TURN_SECONDS * 1000);
+    expect(room.turnDeadline).toBeNull();
     expect(() => askQuestion(room, 'A', 'too late?')).toThrow(/not your turn/);
   });
 
   it('does nothing while a question is pending or after the game ends', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
+    startTimer(room, 'A');
     askQuestion(room, 'A', 'q?');
     expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
     answerQuestion(room, 'B', 'no');

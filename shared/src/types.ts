@@ -59,7 +59,7 @@ export interface RoomView {
   finish: FinishInfo | null;
   round: number;
   version: number;
-  /** Epoch ms by which the active player must ask, or null when no timer is running. */
+  /** Epoch ms by which the active player must ask. Null until they press Ask to start their timer. */
   turnDeadline: number | null;
   /** Server clock at the time of this snapshot, so clients can correct for drift. */
   serverNow: number;
@@ -67,6 +67,8 @@ export interface RoomView {
 
 export type Action =
   | { type: 'start' }
+  | { type: 'timer' }
+  | { type: 'rename'; name: string }
   | { type: 'ask'; text: string }
   | { type: 'answer'; answer: Answer }
   | { type: 'flip'; companyId: string; down: boolean }
@@ -83,7 +85,7 @@ export interface ApiError {
   error: string;
 }
 
-export const BOARD_SIZE = 24;
+export const BOARD_SIZE = 25; // 5 x 5
 export const MAX_QUESTION_LENGTH = 200;
 export const MAX_NAME_LENGTH = 20;
 /** Seconds the active player has to ask a question before the turn passes. */
