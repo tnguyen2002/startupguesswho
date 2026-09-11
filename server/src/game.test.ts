@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { BOARD_SIZE, TURN_SECONDS } from '../../shared/src/index';
+import { BOARD_SIZE } from '../../shared/src/index';
 import {
-  createRoom, startGame, askQuestion, answerQuestion, flipCard, makeGuess, requestRematch, viewFor, expireTurn, startTimer, GameError, type Player, type Room,
+  createRoom, startGame, endTurn, flipCard, makeGuess, requestRematch, viewFor, GameError, type Player, type Room,
 } from './game';
 
 function player(name: string): Player {
@@ -18,7 +18,7 @@ function twoPlayerRoom(): Room {
 const rand0 = () => 0;
 
 describe('startGame', () => {
-  it('deals a 24-card board with distinct secrets', () => {
+  it('deals a 25-card board with distinct secrets', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A');
     expect(room.phase).toBe('playing');
@@ -29,7 +29,6 @@ describe('startGame', () => {
     expect(a.secretId).not.toBe(b.secretId);
     expect(room.board.some((c) => c.id === a.secretId)).toBe(true);
     expect(room.board.some((c) => c.id === b.secretId)).toBe(true);
-    expect(room.stage).toBe('asking');
   });
 
   it('rejects non-host and single player', () => {
@@ -41,29 +40,16 @@ describe('startGame', () => {
 });
 
 describe('turns', () => {
-  it('alternates ask/answer and rejects out-of-turn actions', () => {
+  it('only the active player can end a turn, and ending passes it back and forth', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
     expect(room.activePlayerId).toBe('A');
-    expect(() => askQuestion(room, 'B', 'Is it fintech?')).toThrow(/not your turn/);
-    expect(() => askQuestion(room, 'A', 'Is it fintech?')).toThrow(/start your turn/);
-    startTimer(room, 'A');
-    askQuestion(room, 'A', 'Is it fintech?');
-    expect(room.stage).toBe('answering');
-    expect(() => askQuestion(room, 'A', 'again?')).toThrow(/Waiting/);
-    expect(() => answerQuestion(room, 'A', 'yes')).toThrow(/own question/);
-    answerQuestion(room, 'B', 'no');
-    expect(room.log).toHaveLength(1);
-    expect(room.log[0].answer).toBe('no');
+    expect(() => endTurn(room, 'B')).toThrow(/not your turn/);
+    endTurn(room, 'A');
     expect(room.activePlayerId).toBe('B');
-    expect(room.stage).toBe('asking');
-  });
-
-  it('rejects empty questions', () => {
-    const room = twoPlayerRoom();
-    startGame(room, 'A', rand0);
-    startTimer(room, 'A');
-    expect(() => askQuestion(room, 'A', '   ')).toThrow(/empty/);
+    expect(() => endTurn(room, 'A')).toThrow(/not your turn/);
+    endTurn(room, 'B');
+    expect(room.activePlayerId).toBe('A');
   });
 });
 
@@ -103,12 +89,12 @@ describe('guess', () => {
     expect(room.finish!.secrets.A).toBe(room.players[0].secretId);
   });
 
-  it('cannot guess while waiting for an answer', () => {
+  it('only the active player can guess, and nothing can happen after the game ends', () => {
     const room = twoPlayerRoom();
     startGame(room, 'A', rand0);
-    startTimer(room, 'A');
-    askQuestion(room, 'A', 'q?');
-    expect(() => makeGuess(room, 'A', room.board[0].id)).toThrow(/Waiting/);
+    expect(() => makeGuess(room, 'B', room.board[0].id)).toThrow(/not your turn/);
+    makeGuess(room, 'A', room.players[1].secretId!);
+    expect(() => endTurn(room, 'B')).toThrow(/not in progress/);
   });
 });
 
@@ -122,7 +108,6 @@ describe('rematch', () => {
     requestRematch(room, 'B');
     expect(room.phase).toBe('playing');
     expect(room.round).toBe(2);
-    expect(room.log).toEqual([]);
     expect(room.players.every((p) => !p.wantsRematch)).toBe(true);
   });
 });
@@ -135,54 +120,5 @@ describe('viewFor', () => {
     expect(v.mySecretId).toBe(room.players[0].secretId);
     expect(JSON.stringify(v.players)).not.toContain('secret');
     expect(v.finish).toBeNull();
-  });
-});
-
-describe('turn timer', () => {
-  it('does not run until the active player starts it', () => {
-    const room = twoPlayerRoom();
-    startGame(room, 'A', rand0);
-    expect(room.turnDeadline).toBeNull();
-    expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
-    expect(() => startTimer(room, 'B')).toThrow(/not your turn/);
-    startTimer(room, 'A', 1000);
-    expect(room.turnDeadline).toBe(1000 + TURN_SECONDS * 1000);
-    startTimer(room, 'A', 5000); // pressing again does not reset it
-    expect(room.turnDeadline).toBe(1000 + TURN_SECONDS * 1000);
-  });
-
-  it('clears the timer while answering and for the next player', () => {
-    const room = twoPlayerRoom();
-    startGame(room, 'A', rand0);
-    startTimer(room, 'A');
-    askQuestion(room, 'A', 'q?');
-    expect(room.turnDeadline).toBeNull();
-    answerQuestion(room, 'B', 'yes');
-    expect(room.activePlayerId).toBe('B');
-    expect(room.turnDeadline).toBeNull();
-  });
-
-  it('passes the turn when the deadline is missed, and not before', () => {
-    const room = twoPlayerRoom();
-    startGame(room, 'A', rand0);
-    startTimer(room, 'A', 1000);
-    const deadline = room.turnDeadline!;
-    expect(expireTurn(room, deadline - 1)).toBe(false);
-    expect(room.activePlayerId).toBe('A');
-    expect(expireTurn(room, deadline)).toBe(true);
-    expect(room.activePlayerId).toBe('B');
-    expect(room.turnDeadline).toBeNull();
-    expect(() => askQuestion(room, 'A', 'too late?')).toThrow(/not your turn/);
-  });
-
-  it('does nothing while a question is pending or after the game ends', () => {
-    const room = twoPlayerRoom();
-    startGame(room, 'A', rand0);
-    startTimer(room, 'A');
-    askQuestion(room, 'A', 'q?');
-    expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
-    answerQuestion(room, 'B', 'no');
-    makeGuess(room, 'B', room.players[0].secretId!);
-    expect(expireTurn(room, Date.now() + 10 * 60 * 1000)).toBe(false);
   });
 });

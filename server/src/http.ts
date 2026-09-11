@@ -1,6 +1,6 @@
 // Framework-agnostic router shared by the Vercel function and the local dev server.
 import { GameError } from './game';
-import { actionHandler, createRoomHandler, getStateHandler, joinRoomHandler, NotFoundError } from './api';
+import { actionHandler, createRoomHandler, getStateHandler, joinRoomHandler, NotFoundError, statsHandler } from './api';
 import { getStore } from './store';
 
 export interface HttpRequest {
@@ -25,6 +25,7 @@ export async function handle(req: HttpRequest): Promise<HttpResponse> {
     const parts = req.path.replace(/^\/+|\/+$/g, '').split('/');
 
     if (parts[0] === 'health') return json(200, { ok: true });
+    if (parts[0] === 'stats' && req.method === 'GET') return json(200, await statsHandler(store));
 
     if (parts[0] === 'rooms') {
       if (parts.length === 1 && req.method === 'POST') {

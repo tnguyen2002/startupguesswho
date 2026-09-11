@@ -15,16 +15,6 @@ export interface Company {
 }
 
 export type RoomPhase = 'lobby' | 'playing' | 'finished';
-export type TurnStage = 'asking' | 'answering';
-export type Answer = 'yes' | 'no';
-
-export interface LogEntry {
-  id: number;
-  askerId: string;
-  question: string;
-  answer: Answer | null;
-  at: number;
-}
 
 export interface PlayerView {
   id: string;
@@ -53,24 +43,15 @@ export interface RoomView {
   mySecretId: string | null;
   myFlipped: string[];
   activePlayerId: string | null;
-  stage: TurnStage | null;
-  pendingQuestion: LogEntry | null;
-  log: LogEntry[];
   finish: FinishInfo | null;
   round: number;
   version: number;
-  /** Epoch ms by which the active player must ask. Null until they press Ask to start their timer. */
-  turnDeadline: number | null;
-  /** Server clock at the time of this snapshot, so clients can correct for drift. */
-  serverNow: number;
 }
 
 export type Action =
   | { type: 'start' }
-  | { type: 'timer' }
+  | { type: 'end' }
   | { type: 'rename'; name: string }
-  | { type: 'ask'; text: string }
-  | { type: 'answer'; answer: Answer }
   | { type: 'flip'; companyId: string; down: boolean }
   | { type: 'guess'; companyId: string }
   | { type: 'rematch' };
@@ -86,10 +67,7 @@ export interface ApiError {
 }
 
 export const BOARD_SIZE = 25; // 5 x 5
-export const MAX_QUESTION_LENGTH = 200;
 export const MAX_NAME_LENGTH = 20;
-/** Seconds the active player has to ask a question before the turn passes. */
-export const TURN_SECONDS = 30;
 
 export function valuationTier(b: number): string {
   if (b >= 100) return '$100B+';

@@ -21,6 +21,7 @@ export const api = {
   joinRoom: (code: string, name: string) => request<JoinResponse>('POST', `/rooms/${code}/join`, { name }),
   getState: (code: string, token: string) => request<RoomView>('GET', `/rooms/${code}?token=${encodeURIComponent(token)}`),
   act: (code: string, token: string, action: Action) => request<RoomView>('POST', `/rooms/${code}/action`, { token, ...action }),
+  stats: () => request<{ games: number }>('GET', '/stats'),
 };
 
 export interface StoredSession {

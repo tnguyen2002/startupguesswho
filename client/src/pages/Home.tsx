@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DECK, normalizeRoomCode } from 'shared';
 import { api, lastName, saveSession } from '../api';
@@ -13,6 +13,8 @@ export default function Home() {
   const [code, setCode] = useState(params.get('code') ?? '');
   const [busy, setBusy] = useState<'create' | 'join' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [games, setGames] = useState<number | null>(null);
+  useEffect(() => { api.stats().then((s) => setGames(s.games)).catch(() => {}); }, []);
 
   async function create(e: FormEvent) {
     e.preventDefault();
@@ -51,6 +53,11 @@ export default function Home() {
             <br />
             Guess Who
           </h1>
+          {games !== null && (
+            <p className="mt-3 text-sm text-ink-3">
+              <span className="display font-semibold text-ink tabular-nums">{games.toLocaleString()}</span> {games === 1 ? 'game' : 'games'} played so far
+            </p>
+          )}
 
           <div className="mt-8 grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
             {/* Left: animated board preview, same height as the play card */}

@@ -11,10 +11,17 @@ export interface RoomStore {
   get(code: string): Promise<Room | null>;
   /** Write only if the stored version equals `expectedVersion` (0 = must not exist). Returns false on conflict. */
   compareAndSet(code: string, room: Room, expectedVersion: number): Promise<boolean>;
+  /** Site-wide count of games dealt. */
+  countGame(): Promise<void>;
+  gamesPlayed(): Promise<number>;
 }
 
 export class MemoryStore implements RoomStore {
   private rooms = new Map<string, { room: Room; expires: number }>();
+  private games = 0;
+
+  async countGame() { this.games += 1; }
+  async gamesPlayed() { return this.games; }
 
   async get(code: string): Promise<Room | null> {
     const entry = this.rooms.get(code);
@@ -45,12 +52,22 @@ return 1
 interface UpstashLike {
   get<T>(key: string): Promise<T | null>;
   eval<T>(script: string, keys: string[], args: (string | number)[]): Promise<T>;
+  incr(key: string): Promise<number>;
 }
+
+const GAMES_KEY = 'sgw:stats:games';
 
 export class RedisStore implements RoomStore {
   constructor(private redis: UpstashLike) {}
 
   private key(code: string) { return `sgw:room:${code}`; }
+
+  async countGame() { await this.redis.incr(GAMES_KEY); }
+
+  async gamesPlayed() {
+    const raw = await this.redis.get<number | string>(GAMES_KEY);
+    return Number(raw ?? 0);
+  }
 
   async get(code: string): Promise<Room | null> {
     const raw = await this.redis.get<Room | string>(this.key(code));

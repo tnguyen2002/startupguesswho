@@ -6,7 +6,6 @@ import { lastName } from '../api';
 import Lobby from '../components/Lobby';
 import Board from '../components/Board';
 import TurnPanel from '../components/TurnPanel';
-import Countdown from '../components/Countdown';
 import NameEditor from '../components/NameEditor';
 import GuessModal from '../components/GuessModal';
 import ResultScreen from '../components/ResultScreen';
@@ -15,7 +14,7 @@ import Logo from '../components/Logo';
 export default function Room() {
   const { code: raw = '' } = useParams();
   const code = normalizeRoomCode(raw);
-  const { view, receivedAt, status, error, toast, busy, joinWithName, act, refresh } = useRoom(code);
+  const { view, status, error, toast, busy, joinWithName, act } = useRoom(code);
 
   return (
     <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
@@ -37,7 +36,7 @@ export default function Room() {
       {status === 'joined' && view && (
         <>
           {view.phase === 'lobby' && <Lobby view={view} onRename={(name) => act({ type: 'rename', name })} />}
-          {view.phase !== 'lobby' && <Game view={view} receivedAt={receivedAt} busy={busy} act={act} refresh={refresh} />}
+          {view.phase !== 'lobby' && <Game view={view} busy={busy} act={act} />}
         </>
       )}
 
@@ -67,7 +66,7 @@ function AutoJoin({ busy, error, onJoin }: { busy: boolean; error: string | null
 
 type Act = ReturnType<typeof useRoom>['act'];
 
-function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receivedAt: number; busy: boolean; act: Act; refresh: () => void }) {
+function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) {
   const nav = useNavigate();
   const [guessMode, setGuessMode] = useState(false);
   const [guessing, setGuessing] = useState<Company | null>(null);
@@ -75,7 +74,7 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
   const me = view.players.find((p) => p.id === view.me)!;
   const opp = view.players.find((p) => p.id !== view.me);
   const secret = view.mySecretId ? COMPANY_BY_ID[view.mySecretId] : null;
-  const myTurn = view.activePlayerId === view.me && view.stage === 'asking';
+  const myTurn = view.activePlayerId === view.me;
   const finished = view.phase === 'finished';
 
   const swallow = (p: Promise<unknown>) => p.catch(() => {});
@@ -117,14 +116,10 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
           <div className="mt-5 border-t border-line pt-5">
             <TurnPanel
               view={view}
-              receivedAt={receivedAt}
               guessMode={guessMode}
               busy={busy}
-              onAsk={(text) => act({ type: 'ask', text })}
-              onAnswer={(answer) => act({ type: 'answer', answer })}
+              onEndTurn={() => act({ type: 'end' })}
               onToggleGuess={() => setGuessMode((g) => !g)}
-              onStartTimer={() => act({ type: 'timer' })}
-              onExpire={refresh}
             />
           </div>
         )}
@@ -158,7 +153,6 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
                 </span>
               );
             })}
-            {!finished && <Countdown deadline={view.turnDeadline} serverNow={view.serverNow} receivedAt={receivedAt} size="sm" />}
           </div>
         </div>
       </div>
@@ -186,14 +180,10 @@ function Game({ view, receivedAt, busy, act, refresh }: { view: RoomView; receiv
         >
           <TurnPanel
             view={view}
-            receivedAt={receivedAt}
             guessMode={guessMode}
             busy={busy}
-            onAsk={(text) => act({ type: 'ask', text })}
-            onAnswer={(answer) => act({ type: 'answer', answer })}
+            onEndTurn={() => act({ type: 'end' })}
             onToggleGuess={() => setGuessMode((g) => !g)}
-            onStartTimer={() => act({ type: 'timer' })}
-            onExpire={refresh}
           />
         </div>
       )}
