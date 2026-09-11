@@ -42,3 +42,5 @@ The app is a static Vite build plus one Vercel Function at `api/[...path].ts`. R
 - `server/src/api.ts` room handlers with optimistic concurrency; `store.ts` Redis or in-memory storage; `http.ts` router; `dev.ts` local Express wrapper
 - `api/` one tiny Vercel Function per route, each re-exporting `server/src/vercel.ts`
 - `client/` Vite + React + Tailwind
+
+Deploys automatically from the `main` branch via the Vercel GitHub integration.
