@@ -143,7 +143,8 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
             {view.players.map((p) => {
               const active = view.activePlayerId === p.id && !finished;
               return (
-                <span key={p.id} className={`inline-flex items-center gap-1 whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
+                <span key={p.id} className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line bg-white'}`}>
+                  <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'} ${active ? 'pulse' : ''}`} />
                   <b className="display">{p.id === view.me ? 'You' : 'Opponent'}</b>
                 </span>
               );
