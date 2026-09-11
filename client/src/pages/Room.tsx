@@ -6,7 +6,6 @@ import { lastName } from '../api';
 import Lobby from '../components/Lobby';
 import Board from '../components/Board';
 import TurnPanel from '../components/TurnPanel';
-import NameEditor from '../components/NameEditor';
 import GuessModal from '../components/GuessModal';
 import ResultScreen from '../components/ResultScreen';
 import Logo from '../components/Logo';
@@ -18,10 +17,15 @@ export default function Room() {
 
   return (
     <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
-      <nav className="mx-auto mb-3 flex max-w-7xl items-center gap-3 lg:mb-5">
+      <nav className="mx-auto mb-3 flex max-w-7xl items-center justify-between gap-3 lg:mb-5">
         <Link to="/" className="display whitespace-nowrap text-base font-bold sm:text-lg">
           Startup 🦄 Guess Who
         </Link>
+        {view && view.phase !== 'lobby' && (
+          <span className="display rounded-full border border-line bg-white px-3 py-1 text-xs font-bold tracking-[0.15em] lg:hidden">
+            Room {view.code}
+          </span>
+        )}
       </nav>
 
       {status === 'connecting' && <p className="text-center text-ink-3">Connecting…</p>}
@@ -100,11 +104,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
               <li key={p.id} className={`flex items-center justify-between rounded-xl border px-3 py-2 ${active ? 'border-coral bg-coral-2' : 'border-line'}`}>
                 <span className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'} ${active ? 'pulse' : ''}`} />
-                  {p.id === view.me ? (
-                    <NameEditor name={p.name} onSave={(name) => act({ type: 'rename', name })} />
-                  ) : (
-                    <b className="display">{p.name}</b>
-                  )}
+                  <b className="display">{p.name}</b>{p.id === view.me && <span className="text-xs text-ink-3">(you)</span>}
                 </span>
               </li>
             );
@@ -135,7 +135,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Logo company={secret} size={36} />
               <div className="min-w-0 leading-tight">
-                <div className="text-[10px] text-ink-3">Your secret · {view.code}</div>
+                <div className="text-[10px] text-ink-3">Your secret</div>
                 <div className="display truncate text-sm font-bold">{secret.name}</div>
               </div>
             </div>
@@ -145,11 +145,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
               const active = view.activePlayerId === p.id && !finished;
               return (
                 <span key={p.id} className={`inline-flex items-center gap-1 whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
-                  {p.id === view.me ? (
-                    <NameEditor name={p.name} onSave={(name) => act({ type: 'rename', name })} />
-                  ) : (
-                    <b className="display">{p.name}</b>
-                  )}
+                  <b className="display">{p.name}</b>{p.id === view.me && <span className="text-ink-3">(you)</span>}
                 </span>
               );
             })}
