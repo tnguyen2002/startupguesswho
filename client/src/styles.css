@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #f3eee4;
+  --color-paper-2: #e9e2d3;
+  --color-ink: #161412;
+  --color-ink-2: #4a4540;
+  --color-ink-3: #8a837a;
+  --color-coral: #ff3d5a;
+  --color-coral-2: #ffd9df;
+  --color-lime: #c8f53a;
+  --color-mint: #2fbf8f;
+  --font-display: "Syne", "Avenir Next", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html { color-scheme: light; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, rgba(255, 61, 90, 0.10), transparent 60%),
+    radial-gradient(800px 500px at 100% 100%, rgba(200, 245, 58, 0.18), transparent 60%);
+  background-attachment: fixed;
+  min-height: 100dvh;
+}
+
+/* paper grain */
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#root { position: relative; z-index: 1; }
+
+.display { font-family: var(--font-display); letter-spacing: -0.02em; }
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-3 font-display font-bold text-base uppercase tracking-wide border-2 border-ink transition-all duration-150 select-none;
+  box-shadow: 4px 4px 0 var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+.btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--color-ink); }
+.btn:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--color-ink); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: 2px 2px 0 var(--color-ink); }
+.btn-primary { background: var(--color-coral); color: white; }
+.btn-ink { background: var(--color-ink); color: var(--color-paper); }
+.btn-lime { background: var(--color-lime); }
+.btn-sm { @apply px-3 py-1.5 text-sm; box-shadow: 3px 3px 0 var(--color-ink); }
+
+.field {
+  @apply w-full bg-white/70 border-2 border-ink px-4 py-3 font-mono text-base outline-none;
+  box-shadow: inset 3px 3px 0 rgba(22, 20, 18, 0.08);
+}
+.field:focus { background: white; box-shadow: 4px 4px 0 var(--color-ink); }
+
+.panel {
+  @apply border-2 border-ink bg-white/60 backdrop-blur-sm;
+  box-shadow: 6px 6px 0 var(--color-ink);
+}
+
+.chip {
+  @apply inline-block text-[10px] leading-none px-1.5 py-1 border border-ink/70 uppercase tracking-wider whitespace-nowrap;
+}
+
+/* ---- Card flip ---- */
+.card-scene { perspective: 900px; }
+.card-inner {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.card-inner.is-down { transform: rotateY(180deg); }
+.card-face {
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+}
+.card-front { position: relative; }
+.card-back {
+  position: absolute; inset: 0;
+  transform: rotateY(180deg);
+  background-color: var(--color-ink);
+  background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(243, 238, 228, 0.12) 6px 7px);
+}
+
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(255,61,90,0.6);} 100% { box-shadow: 0 0 0 12px rgba(255,61,90,0);} }
+.pulse { animation: pulse-ring 1.4s ease-out infinite; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { animation: marquee 40s linear infinite; }
