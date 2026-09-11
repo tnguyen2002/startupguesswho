@@ -84,6 +84,8 @@ body::before {
 .card-back {
   position: absolute; inset: 0;
   transform: rotateY(180deg);
+}
+.card-back, .back-pattern {
   background-color: var(--color-ink);
   background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(243, 238, 228, 0.12) 6px 7px);
 }
