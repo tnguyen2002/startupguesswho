@@ -16,8 +16,8 @@ export default function Room() {
   const { view, status, error, toast, busy, joinWithName, act } = useRoom(code);
 
   return (
-    <main className="min-h-dvh px-4 py-5 sm:px-6">
-      <nav className="mx-auto mb-5 flex max-w-7xl items-center justify-between">
+    <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
+      <nav className="mx-auto mb-3 flex max-w-7xl items-center justify-between lg:mb-5">
         <Link to="/" className="display text-lg font-extrabold">
           Startup <span className="text-coral">Guess</span> Who
         </Link>
@@ -70,6 +70,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
   const nav = useNavigate();
   const [guessMode, setGuessMode] = useState(false);
   const [guessing, setGuessing] = useState<Company | null>(null);
+  const [logOpen, setLogOpen] = useState(false);
   const flipped = useMemo(() => new Set(view.myFlipped), [view.myFlipped]);
   const me = view.players.find((p) => p.id === view.me)!;
   const opp = view.players.find((p) => p.id !== view.me);
@@ -80,9 +81,9 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
   const swallow = (p: Promise<unknown>) => p.catch(() => {});
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-5 pb-40 lg:grid-cols-[200px_1fr_280px] lg:pb-0 xl:grid-cols-[220px_1fr_320px]">
+    <div className="mx-auto grid max-w-7xl gap-4 pb-36 lg:gap-5 lg:grid-cols-[200px_1fr_280px] lg:pb-0 xl:grid-cols-[220px_1fr_320px]">
       {/* Left: secret + status */}
-      <aside className="order-1 space-y-4 lg:order-none lg:sticky lg:top-5 lg:self-start">
+      <aside className="hidden space-y-4 lg:block lg:sticky lg:top-5 lg:self-start">
         {secret && (
           <div className="panel p-4">
             <p className="text-xs uppercase tracking-wider text-ink-3">Your secret</p>
@@ -116,8 +117,36 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
         </div>
       </aside>
 
+      {/* Mobile: compact sticky header */}
+      <div className="sticky top-0 z-30 -mx-4 border-b-2 border-ink bg-paper px-4 py-2 lg:hidden" style={{ boxShadow: '0 4px 0 rgba(22,20,18,0.08)' }}>
+        <div className="flex items-center gap-3">
+          {secret && (
+            <div className="flex min-w-0 items-center gap-2">
+              <Logo company={secret} size={36} />
+              <div className="min-w-0 leading-tight">
+                <div className="text-[10px] uppercase tracking-wider text-ink-3">Your secret</div>
+                <div className="display truncate text-sm font-extrabold">{secret.name}</div>
+              </div>
+            </div>
+          )}
+          <div className="ml-auto flex items-center gap-2 text-xs">
+            {view.players.map((p) => {
+              const active = view.activePlayerId === p.id && !finished;
+              return (
+                <span key={p.id} className={`border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-ink/20'}`}>
+                  <b className="display">{p.id === view.me ? 'You' : p.name}</b> {p.remaining}
+                </span>
+              );
+            })}
+            <button className="btn btn-sm" onClick={() => setLogOpen(true)} aria-label="Open question log">
+              Log{view.log.length ? ` ${view.log.length}` : ''}
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Center: board */}
-      <section className="order-3 lg:order-none">
+      <section className="lg:order-none">
         {finished && view.finish && <ResultBanner view={view} busy={busy} onRematch={() => swallow(act({ type: 'rematch' }))} onHome={() => nav('/')} />}
         <div className={finished ? 'pointer-events-none opacity-70' : ''}>
           <Board
@@ -132,7 +161,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
       </section>
 
       {/* Right: questions */}
-      <aside className="panel order-2 flex max-h-[40vh] min-h-[180px] flex-col p-4 lg:order-none lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:min-h-[320px]">
+      <aside className="panel hidden max-h-[calc(100vh-5rem)] min-h-[320px] flex-col p-4 lg:sticky lg:top-5 lg:flex">
         <p className="mb-3 text-xs uppercase tracking-wider text-ink-3">Questions</p>
         <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
         {!finished && (
@@ -148,6 +177,19 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
           </div>
         )}
       </aside>
+
+      {/* Mobile: question log as a bottom sheet */}
+      {logOpen && (
+        <div className="fixed inset-0 z-50 flex items-end bg-ink/60 lg:hidden" onClick={() => setLogOpen(false)}>
+          <div className="panel flex max-h-[75vh] w-full flex-col bg-paper p-4 rise" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs uppercase tracking-wider text-ink-3">Questions</p>
+              <button className="btn btn-sm" onClick={() => setLogOpen(false)}>Close</button>
+            </div>
+            <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
+          </div>
+        </div>
+      )}
 
       {/* Mobile: turn controls pinned to the bottom of the screen */}
       {!finished && (

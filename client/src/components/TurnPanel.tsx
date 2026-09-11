@@ -28,7 +28,8 @@ export default function TurnPanel({ view, guessMode, busy, onAsk, onAnswer, onTo
     }
     return (
       <div>
-        <p className="mb-2 text-xs uppercase tracking-wider text-ink-3">Answer about your secret company</p>
+        <p className="text-xs uppercase tracking-wider text-ink-3">{opp?.name} asks about your secret</p>
+        <p className="display mb-2 mt-1 text-base font-bold leading-snug">{view.pendingQuestion?.question}</p>
         <div className="grid grid-cols-2 gap-3">
           <button className="btn btn-lime" disabled={busy} onClick={() => onAnswer('yes')}>Yes</button>
           <button className="btn btn-primary" disabled={busy} onClick={() => onAnswer('no')}>No</button>
