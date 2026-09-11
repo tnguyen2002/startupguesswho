@@ -17,7 +17,7 @@ Open http://localhost:5173. Vite serves the React app and proxies `/api` to a lo
 - On your turn, ask any yes/no question. Your opponent answers based on their secret company.
 - Flip cards down as you rule them out. Your opponent can see how many you have left.
 - Guess when you're sure. A correct guess wins, a wrong guess loses.
-- Refreshing or reopening the link puts you back in your seat. Rooms expire after 2 hours idle.
+- Refreshing or reopening the link puts you back in your seat. Rooms are deleted 15 minutes after the last player leaves.
 
 ## Tests
 

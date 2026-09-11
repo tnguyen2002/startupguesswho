@@ -26,16 +26,16 @@ export default function QuestionLog({ log, pending, players, me }: Props) {
         const mine = e.askerId === me;
         return (
           <div key={e.id} className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
-            <span className="text-[10px] uppercase tracking-wider text-ink-3">{nameOf(e.askerId)} asked</span>
-            <div className={`max-w-[92%] border-2 border-ink px-3 py-2 ${mine ? 'bg-white' : 'bg-paper-2'}`}>
+            <span className="text-[10px] text-ink-3">{nameOf(e.askerId)} asked</span>
+            <div className={`max-w-[92%] border border-line px-3 py-2 ${mine ? 'bg-white' : 'bg-paper'} rounded-xl`}>
               {e.question}
             </div>
             <div className="mt-1">
               {e.answer ? (
                 <span
-                  className={`display inline-block border-2 border-ink px-2 py-0.5 text-xs font-extrabold uppercase ${
-                    e.answer === 'yes' ? 'bg-lime' : 'bg-coral text-white'
-                  }`}
+                  className={`display inline-block border border-line px-2 py-0.5 text-xs font-bold ${
+                    e.answer === 'yes' ? 'bg-mint-2 text-mint' : 'bg-coral text-white'
+                  } rounded-xl`}
                 >
                   {e.answer}
                 </span>

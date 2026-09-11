@@ -28,11 +28,11 @@ export default function TurnPanel({ view, guessMode, busy, onAsk, onAnswer, onTo
     }
     return (
       <div>
-        <p className="text-xs uppercase tracking-wider text-ink-3">{opp?.name} asks about your secret</p>
+        <p className="text-xs text-ink-3">{opp?.name} asks about your secret</p>
         <p className="display mb-2 mt-1 text-base font-bold leading-snug">{view.pendingQuestion?.question}</p>
         <div className="grid grid-cols-2 gap-3">
-          <button className="btn btn-lime" disabled={busy} onClick={() => onAnswer('yes')}>Yes</button>
-          <button className="btn btn-primary" disabled={busy} onClick={() => onAnswer('no')}>No</button>
+          <button className="btn btn-yes" disabled={busy} onClick={() => onAnswer('yes')}>Yes</button>
+          <button className="btn btn-coral" disabled={busy} onClick={() => onAnswer('no')}>No</button>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export default function TurnPanel({ view, guessMode, busy, onAsk, onAnswer, onTo
         setText('');
       }}
     >
-      <p className="text-xs uppercase tracking-wider text-coral">Your turn</p>
+      <p className="text-xs text-coral">Your turn</p>
       <input
         className="field"
         placeholder="Ask a yes/no question…"
@@ -79,7 +79,7 @@ export default function TurnPanel({ view, guessMode, busy, onAsk, onAnswer, onTo
       />
       <div className="flex gap-2">
         <button className="btn btn-ink flex-1" type="submit" disabled={busy || !text.trim()}>Ask</button>
-        <button className="btn btn-primary" type="button" onClick={onToggleGuess}>Guess</button>
+        <button className="btn btn-coral" type="button" onClick={onToggleGuess}>Guess</button>
       </div>
     </form>
   );

@@ -1,6 +1,11 @@
 import type { Room } from './game';
 
-export const ROOM_TTL_SECONDS = 2 * 60 * 60; // 2 hours idle
+/**
+ * Rooms are deleted after this long with no activity. Every state poll refreshes it, so a room
+ * survives as long as at least one player has the page open. Once everyone leaves, it is
+ * gone 15 minutes later.
+ */
+export const ROOM_TTL_SECONDS = 15 * 60;
 
 export interface RoomStore {
   get(code: string): Promise<Room | null>;

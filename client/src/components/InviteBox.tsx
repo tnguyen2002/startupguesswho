@@ -12,8 +12,8 @@ export default function InviteBox({ code }: { code: string }) {
   };
   return (
     <div className="panel p-5">
-      <p className="text-xs uppercase tracking-wider text-ink-3">Invite code</p>
-      <div className="display mt-1 select-all text-5xl font-extrabold tracking-[0.15em] sm:text-6xl">{code}</div>
+      <p className="text-xs text-ink-3">Invite code</p>
+      <div className="display mt-1 select-all text-5xl font-bold tracking-[0.15em] sm:text-6xl">{code}</div>
       <p className="mt-2 break-all text-xs text-ink-2">{link}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button className="btn btn-sm" onClick={() => copy('code')}>{copied === 'code' ? 'Copied!' : 'Copy code'}</button>

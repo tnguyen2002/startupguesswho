@@ -22,10 +22,10 @@ export default function Logo({ company, size = 56, className = '' }: { company: 
   const [loaded, setLoaded] = useState(false);
   const style = { width: size, height: size };
   return (
-    <div className={`relative shrink-0 overflow-hidden rounded-sm bg-white ${className}`} style={style}>
+    <div className={`relative shrink-0 overflow-hidden rounded-lg bg-white ${className}`} style={style}>
       {(failed || !loaded) && (
         <div
-          className="absolute inset-0 flex items-center justify-center font-display font-extrabold"
+          className="absolute inset-0 flex items-center justify-center font-display font-bold"
           style={{ background: company.brandColor, color: textOn(company.brandColor), fontSize: size * 0.38 }}
         >
           {initials(company.name)}

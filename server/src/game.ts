@@ -1,6 +1,6 @@
 import {
   BOARD_SIZE,
-  COMPANIES,
+  DECK,
   COMPANY_BY_ID,
   MAX_QUESTION_LENGTH,
   type Answer,
@@ -85,7 +85,7 @@ export function opponentOf(room: Room, playerId: string): Player {
 }
 
 function dealBoard(room: Room, rand: () => number) {
-  const picked = shuffle(COMPANIES, rand).slice(0, BOARD_SIZE);
+  const picked = shuffle(DECK, rand).slice(0, BOARD_SIZE);
   room.board = picked;
   const secrets = shuffle(picked, rand);
   room.players.forEach((p, i) => {

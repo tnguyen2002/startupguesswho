@@ -19,27 +19,28 @@ export default function Lobby({ view, busy, onStart }: Props) {
         </p>
       </div>
       <div className="panel p-5 rise" style={{ animationDelay: '80ms' }}>
-        <p className="text-xs uppercase tracking-wider text-ink-3">Players</p>
+        <p className="text-xs text-ink-3">Players</p>
         <ul className="mt-2 space-y-2">
           {view.players.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 border-2 border-ink bg-white px-3 py-2">
+            <li key={p.id} className="flex items-center gap-3 border border-line bg-white px-3 py-2 rounded-xl">
               <span className={`h-2.5 w-2.5 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'}`} />
               <span className="display font-bold">{p.name}</span>
-              {p.isHost && <span className="chip bg-lime border-transparent">host</span>}
+              {p.isHost && <span className="chip bg-mint-2 text-mint">host</span>}
               {p.id === view.me && <span className="text-xs text-ink-3">(you)</span>}
             </li>
           ))}
           {!ready && (
-            <li className="flex items-center gap-3 border-2 border-dashed border-ink/40 px-3 py-2 text-ink-3">
+            <li className="flex items-center gap-3 border border-dashed border-line px-3 py-2 text-ink-3 rounded-xl">
               <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-coral" /> waiting for a second player…
             </li>
           )}
         </ul>
         <div className="mt-5 space-y-1 text-sm text-ink-2">
-          <p className="text-xs uppercase tracking-wider text-ink-3">How to play</p>
+          <p className="text-xs text-ink-3">How to play</p>
           <p>Both players see the same 24 startups. Each of you is secretly one of them.</p>
           <p>Take turns asking yes/no questions. Flip cards down as you rule them out.</p>
           <p>Guess when you're sure. A wrong guess loses.</p>
+          <p>Rooms close 15 minutes after everyone leaves.</p>
         </div>
         <div className="mt-5">
           {me.isHost ? (

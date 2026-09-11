@@ -12,7 +12,6 @@ export interface Company {
   /** Peak valuation in billions USD */
   peakValuationB: number;
   brandColor: string;
-  blurb: string;
 }
 
 export type RoomPhase = 'lobby' | 'playing' | 'finished';

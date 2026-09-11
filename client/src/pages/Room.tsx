@@ -18,10 +18,10 @@ export default function Room() {
   return (
     <main className="min-h-dvh px-4 py-3 sm:px-6 lg:py-5">
       <nav className="mx-auto mb-3 flex max-w-7xl items-center justify-between lg:mb-5">
-        <Link to="/" className="display whitespace-nowrap text-base font-extrabold sm:text-lg">
+        <Link to="/" className="display whitespace-nowrap text-base font-bold sm:text-lg">
           Startup <span className="text-coral">Guess</span> Who
         </Link>
-        <span className="display border-2 border-ink bg-white px-2 py-0.5 text-sm font-bold tracking-[0.2em]">{code}</span>
+        <span className="display border border-line bg-white px-2 py-0.5 text-sm font-bold tracking-[0.2em] rounded-xl">{code}</span>
       </nav>
 
       {status === 'connecting' && <p className="text-center text-ink-3">Connecting…</p>}
@@ -41,7 +41,7 @@ export default function Room() {
       )}
 
       {toast && (
-        <div className="display fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border-2 border-ink bg-coral px-4 py-2 text-sm font-bold text-white rise" style={{ boxShadow: '4px 4px 0 var(--color-ink)' }}>
+        <div className="display fixed bottom-5 left-1/2 z-50 -translate-x-1/2 border border-line bg-coral px-4 py-2 text-sm font-bold text-white rise rounded-xl">
           {toast}
         </div>
       )}
@@ -54,9 +54,9 @@ function JoinForm({ code, busy, error, onJoin }: { code: string; busy: boolean; 
   const submit = (e: FormEvent) => { e.preventDefault(); rememberName(name); onJoin(name); };
   return (
     <form onSubmit={submit} className="mx-auto max-w-md panel p-6 rise">
-      <p className="text-xs uppercase tracking-wider text-ink-3">You've been invited to room</p>
-      <p className="display text-4xl font-extrabold tracking-[0.15em]">{code}</p>
-      <label className="mt-5 block text-xs uppercase tracking-wider text-ink-3">Your name (optional)</label>
+      <p className="text-xs text-ink-3">You've been invited to room</p>
+      <p className="display text-4xl font-bold tracking-[0.15em]">{code}</p>
+      <label className="mt-5 block text-xs text-ink-3">Your name (optional)</label>
       <input className="field mt-1" value={name} maxLength={MAX_NAME_LENGTH} autoFocus onChange={(e) => setName(e.target.value)} />
       {error && <p className="mt-2 text-sm text-coral">{error}</p>}
       <button className="btn btn-primary mt-4 w-full" disabled={busy}>Join game</button>
@@ -86,24 +86,23 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
       <aside className="hidden space-y-4 lg:block lg:sticky lg:top-5 lg:self-start">
         {secret && (
           <div className="panel p-4">
-            <p className="text-xs uppercase tracking-wider text-ink-3">Your secret</p>
+            <p className="text-xs text-ink-3">Your secret</p>
             <div className="mt-2 flex items-center gap-3 lg:block">
               <Logo company={secret} size={56} />
               <div>
-                <div className="display mt-1 text-xl font-extrabold leading-tight">{secret.name}</div>
-                <div className="text-xs text-ink-2">{secret.blurb}</div>
+                <div className="display mt-1 text-xl font-bold leading-tight">{secret.name}</div>
               </div>
             </div>
             <p className="mt-2 text-[11px] text-ink-3">{opp?.name} is trying to guess this.</p>
           </div>
         )}
         <div className="panel p-4">
-          <p className="text-xs uppercase tracking-wider text-ink-3">Round {view.round}</p>
+          <p className="text-xs text-ink-3">Round {view.round}</p>
           <ul className="mt-2 grid grid-cols-2 gap-2 text-sm lg:grid-cols-1">
             {view.players.map((p) => {
               const active = view.activePlayerId === p.id && !finished;
               return (
-                <li key={p.id} className={`flex items-center justify-between border-2 px-2 py-1.5 ${active ? 'border-coral bg-coral-2' : 'border-ink/20'}`}>
+                <li key={p.id} className={`flex items-center justify-between border-2 px-2 py-1.5 ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
                   <span className="flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${p.connected ? 'bg-mint' : 'bg-ink-3'} ${active ? 'pulse' : ''}`} />
                     <b className="display">{p.id === view.me ? 'You' : p.name}</b>
@@ -118,14 +117,14 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
       </aside>
 
       {/* Mobile: compact sticky header */}
-      <div className="sticky top-0 z-30 -mx-4 border-b-2 border-ink bg-paper px-4 py-2 lg:hidden" style={{ boxShadow: '0 4px 0 rgba(22,20,18,0.08)' }}>
+      <div className="sticky top-0 z-30 -mx-4 border-b border-line bg-paper px-4 py-2 lg:hidden" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
         <div className="flex items-center gap-3">
           {secret && (
             <div className="flex min-w-0 flex-1 items-center gap-2">
               <Logo company={secret} size={36} />
               <div className="min-w-0 leading-tight">
-                <div className="text-[10px] uppercase tracking-wider text-ink-3">Your secret</div>
-                <div className="display truncate text-sm font-extrabold">{secret.name}</div>
+                <div className="text-[10px] text-ink-3">Your secret</div>
+                <div className="display truncate text-sm font-bold">{secret.name}</div>
               </div>
             </div>
           )}
@@ -133,7 +132,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
             {view.players.map((p) => {
               const active = view.activePlayerId === p.id && !finished;
               return (
-                <span key={p.id} className={`whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-ink/20'}`}>
+                <span key={p.id} className={`whitespace-nowrap border-2 px-1.5 py-1 leading-none ${active ? 'border-coral bg-coral-2' : 'border-line'} rounded-xl`}>
                   <b className="display">{p.id === view.me ? 'You' : p.name}</b> {p.remaining}
                 </span>
               );
@@ -162,10 +161,10 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
 
       {/* Right: questions */}
       <aside className="panel hidden max-h-[calc(100vh-5rem)] min-h-[320px] flex-col p-4 lg:sticky lg:top-5 lg:flex">
-        <p className="mb-3 text-xs uppercase tracking-wider text-ink-3">Questions</p>
+        <p className="mb-3 text-xs text-ink-3">Questions</p>
         <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
         {!finished && (
-          <div className="mt-3 hidden border-t-2 border-ink pt-3 lg:block">
+          <div className="mt-3 hidden border-t border-line pt-3 lg:block">
             <TurnPanel
               view={view}
               guessMode={guessMode}
@@ -180,10 +179,10 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
 
       {/* Mobile: question log as a bottom sheet */}
       {logOpen && (
-        <div className="fixed inset-0 z-50 flex items-end bg-ink/60 lg:hidden" onClick={() => setLogOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-end bg-ink/40 backdrop-blur-sm lg:hidden" onClick={() => setLogOpen(false)}>
           <div className="panel flex max-h-[75vh] w-full flex-col bg-paper p-4 rise" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs uppercase tracking-wider text-ink-3">Questions</p>
+              <p className="text-xs text-ink-3">Questions</p>
               <button className="btn btn-sm" onClick={() => setLogOpen(false)}>Close</button>
             </div>
             <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
@@ -194,8 +193,8 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
       {/* Mobile: turn controls pinned to the bottom of the screen */}
       {!finished && (
         <div
-          className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-paper px-4 pt-3 lg:hidden"
-          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', boxShadow: '0 -4px 0 rgba(22,20,18,0.08)' }}
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white px-4 pt-3 lg:hidden"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', boxShadow: '0 -4px 16px rgba(0,0,0,0.06)' }}
         >
           <TurnPanel
             view={view}
@@ -235,9 +234,9 @@ function ResultBanner({ view, busy, onRematch, onHome }: { view: RoomView; busy:
   const oppSecret = opp ? COMPANY_BY_ID[f.secrets[opp.id]] : null;
   const iGuessed = f.reason === 'correct-guess' ? won : !won;
   return (
-    <div className={`panel mb-5 p-5 rise ${won ? 'bg-lime' : 'bg-coral-2'}`}>
-      <p className="text-xs uppercase tracking-wider text-ink-2">Round {view.round} over</p>
-      <h2 className="display text-4xl font-extrabold">{won ? 'You win.' : 'You lose.'}</h2>
+    <div className={`panel mb-5 p-5 rise ${won ? 'bg-mint-2 text-mint' : 'bg-coral-2'}`}>
+      <p className="text-xs text-ink-2">Round {view.round} over</p>
+      <h2 className="display text-4xl font-bold">{won ? 'You win.' : 'You lose.'}</h2>
       <p className="mt-2 text-sm">
         {iGuessed ? 'You' : opp?.name} guessed <b>{guessed?.name}</b>
         {f.reason === 'correct-guess' ? ' — correct!' : ' — wrong.'}
