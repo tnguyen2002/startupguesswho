@@ -48,15 +48,12 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-5 py-10 sm:px-8 lg:py-14">
         <div className="mx-auto w-full max-w-3xl">
           <h1 className="display text-5xl font-bold leading-[0.9] sm:text-6xl xl:text-7xl rise" style={{ animationDelay: '60ms' }}>
-            Startup
+            Startup <span aria-label="unicorn" role="img">🦄</span>
             <br />
-            <span className="text-coral">Guess</span> Who
+            Guess Who
           </h1>
-          <span className="mt-4 inline-block rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold tracking-wide text-ink-2 rise" style={{ animationDelay: '120ms' }}>
-            Unicorn Edition
-          </span>
 
-          <div className="mt-6 grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
+          <div className="mt-8 grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
             {/* Left: animated board preview, same height as the play card */}
             <PreviewBoard initialIds={PREVIEW_IDS} />
 

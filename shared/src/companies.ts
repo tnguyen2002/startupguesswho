@@ -24,7 +24,7 @@ export const COMPANIES: Company[] = [
   { id: 'perplexity', name: 'Perplexity', domain: 'perplexity.ai', sector: 'AI', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2022, status: 'private', peakValuationB: 20, brandColor: '#20808D' },
   { id: 'mistral', name: 'Mistral AI', domain: 'mistral.ai', sector: 'AI', hqCountry: 'France', hqCity: 'Paris', founded: 2023, status: 'private', peakValuationB: 14, brandColor: '#FF7000' },
   { id: 'xai', name: 'xAI', domain: 'x.ai', sector: 'AI', hqCountry: 'USA', hqCity: 'Palo Alto', founded: 2023, status: 'private', peakValuationB: 200, brandColor: '#000000' },
-  { id: 'huggingface', name: 'Hugging Face', domain: 'huggingface.co', sector: 'AI', hqCountry: 'USA', hqCity: 'New York', founded: 2016, status: 'private', peakValuationB: 4.5, brandColor: '#FFD21E' },
+  { id: 'huggingface', name: 'Hugging Face', domain: 'huggingface.co', sector: 'AI', hqCountry: 'USA', hqCity: 'New York', founded: 2016, status: 'acquired', peakValuationB: 4.5, brandColor: '#FFD21E' },
   { id: 'discord', name: 'Discord', domain: 'discord.com', sector: 'Social Media', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2015, status: 'private', peakValuationB: 15, brandColor: '#5865F2' },
   { id: 'notion', name: 'Notion', domain: 'notion.so', sector: 'Productivity', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2013, status: 'private', peakValuationB: 10, brandColor: '#000000' },
   { id: 'epicgames', name: 'Epic Games', domain: 'epicgames.com', sector: 'Gaming', hqCountry: 'USA', hqCity: 'Cary', founded: 1991, status: 'private', peakValuationB: 32, brandColor: '#313131' },
@@ -134,8 +134,25 @@ export const COMPANIES: Company[] = [
   { id: 'liquiddeath', name: 'Liquid Death', domain: 'liquiddeath.com', sector: 'Consumer', hqCountry: 'USA', hqCity: 'Los Angeles', founded: 2017, status: 'private', peakValuationB: 1.4, brandColor: '#000000' },
 ];
 
-/** Cards actually dealt onto the board: private unicorns only, for now. */
-export const DECK: Company[] = COMPANIES.filter((c) => c.status === 'private');
+/**
+ * The curated deck: private unicorns that get mainstream coverage. Everything else in
+ * COMPANIES stays available but is never dealt. Edit this list to tune the game.
+ */
+export const CURATED_IDS = [
+  // AI
+  'openai', 'anthropic', 'xai', 'mistral', 'perplexity', 'scaleai', 'cursor', 'elevenlabs',
+  'runway', 'groq', 'cerebras', 'ssi', 'thinkingmachines', 'cohere', 'harvey', 'sierra', 'lovable',
+  // Fintech
+  'stripe', 'revolut', 'brex', 'ramp', 'plaid', 'mercury', 'kraken', 'monzo',
+  // Productivity and developer tools
+  'notion', 'canva', 'vercel', 'supabase', 'linear', 'airtable', 'miro', 'grammarly',
+  // Everything else
+  'spacex', 'discord', 'epicgames', 'bytedance', 'neuralink', 'anduril', 'helsing', 'databricks',
+  'deel', 'rippling', 'gusto', 'whatnot', 'faire', 'zipline', 'colossal', 'liquiddeath', 'oura', 'dji', 'strava',
+];
+
+const curated = new Set(CURATED_IDS);
+export const DECK: Company[] = COMPANIES.filter((c) => c.status === 'private' && curated.has(c.id));
 
 export const COMPANY_BY_ID: Record<string, Company> = Object.fromEntries(
   COMPANIES.map((c) => [c.id, c]),
