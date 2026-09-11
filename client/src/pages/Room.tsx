@@ -80,7 +80,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
   const swallow = (p: Promise<unknown>) => p.catch(() => {});
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[200px_1fr_280px] xl:grid-cols-[220px_1fr_320px]">
+    <div className="mx-auto grid max-w-7xl gap-5 pb-40 lg:grid-cols-[200px_1fr_280px] lg:pb-0 xl:grid-cols-[220px_1fr_320px]">
       {/* Left: secret + status */}
       <aside className="order-1 space-y-4 lg:order-none lg:sticky lg:top-5 lg:self-start">
         {secret && (
@@ -98,7 +98,7 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
         )}
         <div className="panel p-4">
           <p className="text-xs uppercase tracking-wider text-ink-3">Round {view.round}</p>
-          <ul className="mt-2 space-y-2 text-sm">
+          <ul className="mt-2 grid grid-cols-2 gap-2 text-sm lg:grid-cols-1">
             {view.players.map((p) => {
               const active = view.activePlayerId === p.id && !finished;
               return (
@@ -132,11 +132,11 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
       </section>
 
       {/* Right: questions */}
-      <aside className="panel order-2 flex max-h-[70vh] min-h-[320px] flex-col p-4 lg:order-none lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)]">
+      <aside className="panel order-2 flex max-h-[40vh] min-h-[180px] flex-col p-4 lg:order-none lg:sticky lg:top-5 lg:max-h-[calc(100vh-5rem)] lg:min-h-[320px]">
         <p className="mb-3 text-xs uppercase tracking-wider text-ink-3">Questions</p>
         <QuestionLog log={view.log} pending={view.pendingQuestion} players={view.players} me={view.me} />
         {!finished && (
-          <div className="mt-3 border-t-2 border-ink pt-3">
+          <div className="mt-3 hidden border-t-2 border-ink pt-3 lg:block">
             <TurnPanel
               view={view}
               guessMode={guessMode}
@@ -148,6 +148,23 @@ function Game({ view, busy, act }: { view: RoomView; busy: boolean; act: Act }) 
           </div>
         )}
       </aside>
+
+      {/* Mobile: turn controls pinned to the bottom of the screen */}
+      {!finished && (
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-ink bg-paper px-4 pt-3 lg:hidden"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', boxShadow: '0 -4px 0 rgba(22,20,18,0.08)' }}
+        >
+          <TurnPanel
+            view={view}
+            guessMode={guessMode}
+            busy={busy}
+            onAsk={(text) => act({ type: 'ask', text })}
+            onAnswer={(answer) => act({ type: 'answer', answer })}
+            onToggleGuess={() => setGuessMode((g) => !g)}
+          />
+        </div>
+      )}
 
       {guessing && (
         <GuessModal

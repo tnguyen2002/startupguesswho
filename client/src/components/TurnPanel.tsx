@@ -1,4 +1,6 @@
 import { useState } from 'react';
+
+const hasPointer = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 import { MAX_QUESTION_LENGTH, type RoomView } from 'shared';
 
 interface Props {
@@ -71,7 +73,7 @@ export default function TurnPanel({ view, guessMode, busy, onAsk, onAnswer, onTo
         placeholder="Ask a yes/no question…"
         value={text}
         maxLength={MAX_QUESTION_LENGTH}
-        autoFocus
+        autoFocus={hasPointer}
         onChange={(e) => setText(e.target.value)}
       />
       <div className="flex gap-2">
