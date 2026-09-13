@@ -83,4 +83,4 @@ body {
 @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(240,72,92,0.5);} 100% { box-shadow: 0 0 0 10px rgba(240,72,92,0);} }
 .pulse { animation: pulse-ring 1.4s ease-out infinite; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.marquee { animation: marquee 40s linear infinite; }
+.marquee { animation: marquee 90s linear infinite; }

@@ -16,10 +16,12 @@ function randomCompany(exclude: Set<string>): Company {
 }
 
 /** Decorative board for the home page: cards keep flipping down and back up with new companies. */
-export default function PreviewBoard({ initialIds }: { initialIds: string[] }) {
-  const [slots, setSlots] = useState<Slot[]>(() =>
-    initialIds.slice(0, SLOTS).map((id, i) => ({ company: DECK.find((c) => c.id === id) ?? DECK[i], down: i === 1 || i === 6 })),
-  );
+export default function PreviewBoard() {
+  const [slots, setSlots] = useState<Slot[]>(() => {
+    // Same pool as a real board: a random hand from the full deck.
+    const shuffled = DECK.slice().sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, SLOTS).map((company, i) => ({ company, down: i === 1 || i === 6 }));
+  });
 
   useEffect(() => {
     const id = setInterval(() => {

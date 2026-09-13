@@ -5,8 +5,6 @@ import { api, saveSession } from '../api';
 import Logo from '../components/Logo';
 import PreviewBoard from '../components/PreviewBoard';
 
-const PREVIEW_IDS = ['stripe', 'anduril', 'canva', 'revolut', 'spacex', 'notion', 'oura', 'databricks', 'openai'];
-
 export default function Home() {
   const nav = useNavigate();
   const [params] = useSearchParams();
@@ -40,7 +38,7 @@ export default function Home() {
     } finally { setBusy(null); }
   }
 
-  const strip = [...DECK.slice(0, 20), ...DECK.slice(0, 20)];
+  const strip = [...DECK, ...DECK];
 
   return (
     <main className="flex min-h-dvh flex-col">
@@ -59,7 +57,7 @@ export default function Home() {
 
           <div className="mt-8 grid items-stretch gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
             {/* Left: animated board preview, same height as the play card */}
-            <PreviewBoard initialIds={PREVIEW_IDS} />
+            <PreviewBoard />
 
             {/* Right: play card */}
             <section className="panel flex w-full flex-col justify-center p-6 rise sm:p-8" style={{ animationDelay: '160ms' }}>
