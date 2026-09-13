@@ -143,12 +143,12 @@ export const CURATED_IDS = [
   'openai', 'anthropic', 'xai', 'mistral', 'perplexity', 'scaleai', 'cursor', 'elevenlabs',
   'runway', 'groq', 'cerebras', 'ssi', 'thinkingmachines', 'cohere', 'harvey', 'sierra', 'lovable',
   // Fintech
-  'stripe', 'revolut', 'brex', 'ramp', 'plaid', 'mercury', 'kraken', 'monzo',
+  'stripe', 'revolut', 'brex', 'ramp', 'plaid', 'mercury', 'kraken',
   // Productivity and developer tools
-  'notion', 'canva', 'vercel', 'supabase', 'linear', 'airtable', 'miro', 'grammarly',
+  'notion', 'canva', 'vercel', 'supabase', 'linear', 'miro', 'grammarly',
   // Everything else
-  'spacex', 'discord', 'epicgames', 'bytedance', 'neuralink', 'anduril', 'helsing', 'databricks',
-  'deel', 'rippling', 'gusto', 'whatnot', 'faire', 'zipline', 'oura', 'dji', 'strava',
+  'spacex', 'discord', 'epicgames', 'bytedance', 'neuralink', 'anduril', 'databricks',
+  'deel', 'rippling', 'gusto', 'whatnot', 'zipline', 'oura', 'dji', 'strava',
 ];
 
 const curated = new Set(CURATED_IDS);
