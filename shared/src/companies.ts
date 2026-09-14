@@ -45,7 +45,7 @@ export const COMPANIES: Company[] = [
   { id: 'gamma', name: 'Gamma', domain: 'gamma.app', sector: 'Productivity', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2020, status: 'private', peakValuationB: 2.1, brandColor: '#8B5CF6' },
   { id: 'baseten', name: 'Baseten', domain: 'baseten.co', sector: 'AI Infra', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2019, status: 'private', peakValuationB: 2.15, brandColor: '#000000' },
   { id: 'modal', name: 'Modal', domain: 'modal.com', sector: 'AI Infra', hqCountry: 'USA', hqCity: 'New York', founded: 2021, status: 'private', peakValuationB: 1.1, brandColor: '#7FEE64' },
-  { id: 'longlake', name: 'Long Lake', domain: 'longlake.com', sector: 'Real Estate', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2024, status: 'private', peakValuationB: 1, brandColor: '#000000' },
+  { id: 'longlake', name: 'Long Lake', domain: 'llmh.com', sector: 'Services', hqCountry: 'USA', hqCity: 'New York', founded: 2024, status: 'private', peakValuationB: 2, brandColor: '#5D6D7A', logoUrl: '/logos/longlake.png' },
   { id: 'cognition', name: 'Cognition', domain: 'cognition.ai', sector: 'AI', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2023, status: 'private', peakValuationB: 10.2, brandColor: '#000000' },
   { id: 'clay', name: 'Clay', domain: 'clay.com', sector: 'Sales', hqCountry: 'USA', hqCity: 'New York', founded: 2017, status: 'private', peakValuationB: 3.1, brandColor: '#000000' },
   { id: 'decagon', name: 'Decagon', domain: 'decagon.ai', sector: 'AI', hqCountry: 'USA', hqCity: 'San Francisco', founded: 2023, status: 'private', peakValuationB: 1.5, brandColor: '#000000' },

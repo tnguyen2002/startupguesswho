@@ -12,6 +12,8 @@ export interface Company {
   /** Peak valuation in billions USD */
   peakValuationB: number;
   brandColor: string;
+  /** Optional logo to use instead of the favicon lookup for `domain`. */
+  logoUrl?: string;
 }
 
 export type RoomPhase = 'lobby' | 'playing' | 'finished';

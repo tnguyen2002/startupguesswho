@@ -33,7 +33,7 @@ export default function Logo({ company, size = 56, className = '' }: { company: 
       )}
       {!failed && (
         <img
-          src={logoUrl(company.domain)}
+          src={company.logoUrl ?? logoUrl(company.domain)}
           alt={`${company.name} logo`}
           width={size}
           height={size}
@@ -44,8 +44,8 @@ export default function Logo({ company, size = 56, className = '' }: { company: 
             if (img.naturalWidth < 32) setFailed(true); else setLoaded(true);
           }}
           onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-contain p-1.5"
-          style={{ opacity: loaded ? 1 : 0, transition: 'opacity .3s' }}
+          className="absolute inset-0 h-full w-full object-contain"
+          style={{ padding: Math.round(size * 0.11), opacity: loaded ? 1 : 0, transition: 'opacity .3s' }}
         />
       )}
     </div>
